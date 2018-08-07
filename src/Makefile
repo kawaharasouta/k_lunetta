@@ -47,10 +47,10 @@ ifeq ($(DEBUG), PKT_IO)
   SRCS-y := pkt_io.c
   CFLAGS += -DDEBUG_PKT_IO
 else
-  SRCS-y := pkt_io.c
+  SRCS-y := main.c pkt_io.c ethernet.c
 endif
 
-CFLAGS += -g -lpthread -pthread 
+CFLAGS += -g
 #CFLAGS += $(WERROR_FLAGS)
 
 include $(RTE_SDK)/mk/rte.extapp.mk

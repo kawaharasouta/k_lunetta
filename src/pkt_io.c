@@ -80,6 +80,10 @@ port_init(/*uint16_t port*/struct port_config *port)
 		addr.addr_bytes[0], addr.addr_bytes[1],
 		addr.addr_bytes[2], addr.addr_bytes[3],
 		addr.addr_bytes[4], addr.addr_bytes[5]);
+
+	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
+		port->mac_addr.addr[i] = addr.addr_bytes[i];
+	}
 	
 	/* Enable RX in promiscuous mode for the Ethernet port. */
 	rte_eth_promiscuous_enable(nport);
@@ -124,10 +128,13 @@ rx_pkt (struct port_config *port) {
 	/* Recv burst of RX packets */
 	nb_rx = rte_eth_rx_burst(nport, 0, bufs, BURST_SIZE);
 	for (int i = 0; i < nb_rx ; i++) {
-		uint8_t *p = rte_pktmbuf_mtod(bufs[i], uint8_t*);
+		//uint8_t *p = rte_pktmbuf_mtod(bufs[i], uint8_t*);
 		uint32_t size = rte_pktmbuf_pkt_len(bufs[i]);
 		//rte_hexdump(stdout, "", (const void *)p, size);
-		//ethernet_rx(port, p, size);
+#ifndef DEBUG_PKT_IO
+		rx_ether(port, bufs[i], size);
+#endif
+		/* Tentatively */
 		rte_pktmbuf_free(bufs[i]);
 	}
 }
@@ -173,8 +180,6 @@ int launch_lcore_rxtx(void *arg) {
 
 
 
-
-
 #ifdef DEBUG_PKT_IO
 int main(void) {
 	if (dpdk_init() == -1) {
@@ -188,10 +193,7 @@ int main(void) {
 	int ret;
 	int rx_pop_num;
 
-//	rte_eal_remote_launch(launch_lcore_rxtx, (void *)&port, 1);
-//	rte_eal_wait_lcore(1);
 	while (1) {
-		//printf("*");
 		rx_pkt(&port);
 
 		struct rte_mbuf *mbuf;
@@ -201,16 +203,6 @@ int main(void) {
 		mbuf->pkt_len = 60;
 		mbuf->data_len = 60;
 		tx_pkt(&port, mbuf);
-//		struct rte_mbuf *bufs[BURST_SIZE];
-//		uint16_t nport = port.port_num;
-//		uint16_t nb_tx;
-//	
-//		mbuf->port = port.port_num;
-//		mbuf->packet_type = 1;
-//		bufs[0] = mbuf;
-//		nb_tx = rte_eth_tx_burst(nport, 0, bufs, 1);
-//		if (nb_tx == 0) 
-//			rte_pktmbuf_free(bufs[0]);
 	}
 }
 #endif
