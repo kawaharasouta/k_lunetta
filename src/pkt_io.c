@@ -126,22 +126,24 @@ rx_pkt (struct port_config *port) {
 	for (int i = 0; i < nb_rx ; i++) {
 		uint8_t *p = rte_pktmbuf_mtod(bufs[i], uint8_t*);
 		uint32_t size = rte_pktmbuf_pkt_len(bufs[i]);
-		rte_hexdump(stdout, "", (const void *)p, size);
-	}
-	for (int j = 0; j < nb_rx; j++) {
-		rte_pktmbuf_free(bufs[j]);
+		//rte_hexdump(stdout, "", (const void *)p, size);
+		//ethernet_rx(port, p, size);
+		rte_pktmbuf_free(bufs[i]);
 	}
 }
-
 void
-tx_pkt (struct port_config *port) {
+tx_pkt (struct port_config *port, struct rte_mbuf *mbuf) {
 	struct rte_mbuf *bufs[BURST_SIZE];
 	uint16_t nport = port->port_num;
 	int i, j, k;
 	uint16_t nb_tx;
 
-
+	mbuf->port = port->port_num;
+	mbuf->packet_type = 1;
+	bufs[0] = mbuf;
 	nb_tx = rte_eth_tx_burst(nport, 0, bufs, 1);
+	if (nb_tx == 0)
+		rte_pktmbuf_free(bufs[0]);
 	return;
 }
 
@@ -152,7 +154,13 @@ void lcore_rxtxmain(struct port_config *port) {
 	printf("port->port_num: %u\n", port->port_num);
 	while (1) {
 		rx_pkt(port);
-		//tx_pkt(port);
+		struct rte_mbuf *mbuf;
+		mbuf = rte_pktmbuf_alloc(mbuf_pool);
+		uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
+		memset(p, 1, 60);
+		mbuf->pkt_len = 60;
+		mbuf->data_len = 60;
+		tx_pkt(port, mbuf);
 	}
 }
 int launch_lcore_rxtx(void *arg) {
@@ -162,7 +170,6 @@ int launch_lcore_rxtx(void *arg) {
 	lcore_rxtxmain((struct port_config *)arg);
 	return 0;
 }
-
 
 
 
@@ -181,7 +188,29 @@ int main(void) {
 	int ret;
 	int rx_pop_num;
 
-	rte_eal_remote_launch(launch_lcore_rxtx, (void *)&port, 1);
-	rte_eal_wait_lcore(1);
+//	rte_eal_remote_launch(launch_lcore_rxtx, (void *)&port, 1);
+//	rte_eal_wait_lcore(1);
+	while (1) {
+		//printf("*");
+		rx_pkt(&port);
+
+		struct rte_mbuf *mbuf;
+		mbuf = rte_pktmbuf_alloc(mbuf_pool);
+		uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
+		memset(p, 0x11, 60);
+		mbuf->pkt_len = 60;
+		mbuf->data_len = 60;
+		tx_pkt(&port, mbuf);
+//		struct rte_mbuf *bufs[BURST_SIZE];
+//		uint16_t nport = port.port_num;
+//		uint16_t nb_tx;
+//	
+//		mbuf->port = port.port_num;
+//		mbuf->packet_type = 1;
+//		bufs[0] = mbuf;
+//		nb_tx = rte_eth_tx_burst(nport, 0, bufs, 1);
+//		if (nb_tx == 0) 
+//			rte_pktmbuf_free(bufs[0]);
+	}
 }
 #endif
