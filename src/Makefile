@@ -42,7 +42,13 @@ include $(RTE_SDK)/mk/rte.vars.mk
 APP = main
 
 # all source are stored in SRCS-y
-SRCS-y := pkt_io.c
+#SRCS-y := pkt_io.c
+ifeq ($(DEBUG), PKT_IO)
+  SRCS-y := pkt_io.c
+  CFLAGS += -DDEBUG_PKT_IO
+else
+  SRCS-y := pkt_io.c
+endif
 
 CFLAGS += -g -lpthread -pthread 
 #CFLAGS += $(WERROR_FLAGS)
