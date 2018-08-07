@@ -26,6 +26,6 @@ extern ethernet_addr ether_broadcast;
 void print_mac_addr(ethernet_addr *addr);
 int equal_mac_addr(ethernet_addr *addr1, ethernet_addr *addr2);
 int is_ether_broadcast(ethernet_addr *addr);
-void rx_ether(struct port_config *port, struct rte_mbuf *mbuf, uint32_t size);
+void rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/);
 void tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_t type, const void *paddr, ethernet_addr *dest);
 #endif

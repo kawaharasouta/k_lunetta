@@ -128,14 +128,9 @@ rx_pkt (struct port_config *port) {
 	/* Recv burst of RX packets */
 	nb_rx = rte_eth_rx_burst(nport, 0, bufs, BURST_SIZE);
 	for (int i = 0; i < nb_rx ; i++) {
-		//uint8_t *p = rte_pktmbuf_mtod(bufs[i], uint8_t*);
-		uint32_t size = rte_pktmbuf_pkt_len(bufs[i]);
-		//rte_hexdump(stdout, "", (const void *)p, size);
 #ifndef DEBUG_PKT_IO
-		rx_ether(port, bufs[i], size);
+		rx_ether(port, bufs[i]);
 #endif
-		/* Tentatively */
-		rte_pktmbuf_free(bufs[i]);
 	}
 }
 void

@@ -47,7 +47,8 @@ void print_ethernet_hdr(struct ethernet_hdr *ether_hdr) {
 	return;
 }
 
-void rx_ether(struct port_config *port, struct rte_mbuf *mbuf, uint32_t size) {
+void rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
+	uint32_t size = rte_pktmbuf_pkt_len(mbuf);
 	printf("size: %d\n", size);
 	if (size > 1512)
 		return;
