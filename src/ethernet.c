@@ -42,6 +42,13 @@ struct ether_port*
 get_port_pointer() {
 	return ports;
 }
+struct ether_port*
+find_port_pointer(uint16_t port_num) {
+	for (int i = 0; i < ETHER_PORT_MAX_NUM; i++) {
+		if (ports[i].port_num == port_num)
+			return &ports[i];
+	}
+}
 
 void 
 print_mac_addr(ethernet_addr *addr) {
@@ -132,7 +139,7 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t
 }
 
 void 
-rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
+rx_ether(/*struct port_config *port*/uint16_t port_num, struct rte_mbuf *mbuf/*, uint32_t size*/) {
 	uint32_t size = rte_pktmbuf_pkt_len(mbuf);
 	printf("size: %d\n", size);
 	if (size > 1514)
@@ -141,6 +148,8 @@ rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
 	uint32_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
 	struct ethernet_hdr *packet = (struct ethernet_hdr *)p;
 	uint8_t *pp = (uint8_t *)p;
+	struct ether_port *port;
+	port = find_port_pointer(port_num);
 
 	printf("sizeof %u\n", sizeof(struct ethernet_hdr));
 	pp += sizeof(struct ethernet_hdr);
@@ -150,7 +159,6 @@ rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
 
 	printf("port mac addr:");
 	print_mac_addr(&port->mac_addr);
-
 	
 	if (equal_mac_addr(&port->mac_addr, &packet->dest) == 0 || is_ether_broadcast(&packet->dest) == 0 ) {
 		switch (ntohs(packet->type)) {
@@ -178,7 +186,6 @@ rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
 	}
 
 	rte_pktmbuf_free(mbuf);
-	
 
 	return;
 }

@@ -36,7 +36,7 @@ equal_mac_addr(ethernet_addr *addr1, ethernet_addr *addr2);
 int 
 is_ether_broadcast(ethernet_addr *addr);
 void 
-rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/);
+rx_ether(/*struct port_config *port*/uint16_t port_num, struct rte_mbuf *mbuf/*, uint32_t size*/);
 void 
 tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t type, const void *paddr, ethernet_addr *dest);
 #endif

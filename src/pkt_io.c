@@ -129,7 +129,7 @@ rx_pkt (struct port_config *port) {
 	nb_rx = rte_eth_rx_burst(nport, 0, bufs, BURST_SIZE);
 	for (int i = 0; i < nb_rx ; i++) {
 #ifndef DEBUG_PKT_IO
-		rx_ether(port, bufs[i]);
+		rx_ether(port->port_num, bufs[i]);
 #endif
 	}
 }
