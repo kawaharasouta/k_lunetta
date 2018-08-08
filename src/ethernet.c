@@ -16,12 +16,28 @@
 #define ETHER_FRAME_MIN_LEN 64
 #define ETHER_HEADER_LEN 14
 
-struct ether_table {
+#define ETHER_DEV_MAX_NUM 1
+
+struct ether_dev {
 	uint16_t port_num;
 	ethernet_addr mac_addr;
-} table;
+};
+struct ether_dev devs[ETHER_DEV_MAX_NUM];
 
 ethernet_addr ether_broadcast = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+
+/* Assumed to be called after dpdk_init.     *
+ * Load the port_config setting.             *
+ * For now, port_config is a single pointer. */
+int
+ethernet_init(struct port_config *port, uint16_t num) {
+	if (num > ETHER_DEV_MAX_NUM)
+		num = ETHER_DEV_MAX_NUM;
+	for (int i = 0; i < ETHER_DEV_MAX_NUM) {
+		devs[i].port_num = port->port_num;
+		devs[i].mac_addr = port->mac_addr;
+	}
+}
 
 void 
 print_mac_addr(ethernet_addr *addr) {
