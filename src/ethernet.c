@@ -12,6 +12,11 @@
 #include"include/pkt_io.h"
 #include"include/ethernet.h"
 
+struct ether_table {
+	uint16_t port_num;
+	ethernet_addr mac_addr;
+} table;
+
 ethernet_addr ether_broadcast = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 void 
@@ -58,7 +63,7 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_
 	ethernet_addr haddr;
 	struct ethernet_hdr *eth;
 
-	if (!mbuf && (!paddr && !dest)) {
+	if (size > 1500 && !mbuf && (!paddr && !dest)) {
 		return;
 	}
 
@@ -79,7 +84,6 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_
 		}
 	}
 
-	uint16_t _type = 0x0800;
 	uint8_t *pp = (uint8_t *)rte_pktmbuf_prepend(mbuf, sizeof(uint8_t) * 14);
 	if (!pp) {
 		printf("mbuf prepend error\n");
@@ -94,11 +98,8 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_
 	len = sizeof(struct ethernet_hdr) + size;
 	if (len < 64) {
 		pp += len;
-		memset(pp, 1, 64 - len);
+		memset(pp, 0x00, 64 - len);
 		len = 64;
-	}
-	else if (size > 1514) {
-		return;
 	}
 	mbuf->pkt_len = len;
 	mbuf->data_len = len;
@@ -110,7 +111,7 @@ void
 rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
 	uint32_t size = rte_pktmbuf_pkt_len(mbuf);
 	printf("size: %d\n", size);
-	if (size > 1512)
+	if (size > 1514)
 		return;
 
 	uint32_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
