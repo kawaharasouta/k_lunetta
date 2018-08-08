@@ -9,6 +9,7 @@
 #define ETHER_ADDR_LEN 6
 
 extern struct port_config;
+extern struct ether_port;
 //#include"lunetta.h"
 
 typedef struct {
@@ -23,8 +24,11 @@ struct ethernet_hdr {
 
 extern ethernet_addr ether_broadcast;
 
+struct ether_port*
+get_port_pointer();
+
 int 
-ethernet_init(struct port_config *portm uint16_t num);
+ethernet_init(struct port_config *port, uint16_t num);
 void 
 print_mac_addr(ethernet_addr *addr);
 int 
@@ -34,5 +38,5 @@ is_ether_broadcast(ethernet_addr *addr);
 void 
 rx_ether(struct port_config *port, struct rte_mbuf *mbuf/*, uint32_t size*/);
 void 
-tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_t type, const void *paddr, ethernet_addr *dest);
+tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t type, const void *paddr, ethernet_addr *dest);
 #endif

@@ -134,16 +134,15 @@ rx_pkt (struct port_config *port) {
 	}
 }
 void
-tx_pkt (struct port_config *port, struct rte_mbuf *mbuf) {
+tx_pkt (uint16_t port_num, struct rte_mbuf *mbuf) {
 	struct rte_mbuf *bufs[BURST_SIZE];
-	uint16_t nport = port->port_num;
 	int i, j, k;
 	uint16_t nb_tx;
 
-	mbuf->port = port->port_num;
+	mbuf->port = port_num;
 	mbuf->packet_type = 1;
 	bufs[0] = mbuf;
-	nb_tx = rte_eth_tx_burst(nport, 0, bufs, 1);
+	nb_tx = rte_eth_tx_burst(port_num, 0, bufs, 1);
 	if (nb_tx == 0)
 		rte_pktmbuf_free(bufs[0]);
 	return;

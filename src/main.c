@@ -36,10 +36,11 @@ main(void) {
 		struct rte_mbuf *mbuf;
 		mbuf = rte_pktmbuf_alloc(mbuf_pool);
 		uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
+		struct ether_port *ether_port = get_port_pointer();
 		//memset(p, 0x11, 60);
 		//mbuf->pkt_len = 60;
 		//mbuf->data_len = 60;
 		//tx_pkt(&port, mbuf);
-		tx_ether(mbuf, 0, &port, ETHERTYPE_IP, NULL, &ether_broadcast);
+		tx_ether(mbuf, 0, /*&port*/ether_port, ETHERTYPE_IP, NULL, &ether_broadcast);
 	}
 }

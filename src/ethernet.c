@@ -16,13 +16,13 @@
 #define ETHER_FRAME_MIN_LEN 64
 #define ETHER_HEADER_LEN 14
 
-#define ETHER_DEV_MAX_NUM 1
+#define ETHER_PORT_MAX_NUM 1
 
-struct ether_dev {
+struct ether_port {
 	uint16_t port_num;
 	ethernet_addr mac_addr;
 };
-struct ether_dev devs[ETHER_DEV_MAX_NUM];
+struct ether_port ports[ETHER_PORT_MAX_NUM];
 
 ethernet_addr ether_broadcast = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
@@ -31,12 +31,16 @@ ethernet_addr ether_broadcast = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
  * For now, port_config is a single pointer. */
 int
 ethernet_init(struct port_config *port, uint16_t num) {
-	if (num > ETHER_DEV_MAX_NUM)
-		num = ETHER_DEV_MAX_NUM;
-	for (int i = 0; i < ETHER_DEV_MAX_NUM) {
-		devs[i].port_num = port->port_num;
-		devs[i].mac_addr = port->mac_addr;
+	if (num > ETHER_PORT_MAX_NUM)
+		num = ETHER_PORT_MAX_NUM;
+	for (int i = 0; i < ETHER_PORT_MAX_NUM; i++) {
+		ports[i].port_num = port->port_num;
+		ports[i].mac_addr = port->mac_addr;
 	}
+}
+struct ether_port*
+get_port_pointer() {
+	return ports;
 }
 
 void 
@@ -77,7 +81,7 @@ print_ethernet_hdr(struct ethernet_hdr *ether_hdr) {
 }
 
 void 
-tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_t type, const void *paddr, ethernet_addr *dest) {
+tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t type, const void *paddr, ethernet_addr *dest) {
 	int ret;
 	uint32_t len;/* = 64;*/
 	ethernet_addr haddr;
@@ -123,7 +127,7 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_
 	}
 	mbuf->pkt_len = len;
 	mbuf->data_len = len;
-	tx_pkt(port, mbuf);
+	tx_pkt(port->port_num, mbuf);
 	return;
 }
 
