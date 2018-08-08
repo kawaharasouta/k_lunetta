@@ -10,5 +10,6 @@
 
 extern struct rte_mempool *mbuf_pool;
 
-void tx_pkt (struct port_config *port, struct rte_mbuf *mbuf);
+void 
+tx_pkt (struct port_config *port, struct rte_mbuf *mbuf);
 #endif
