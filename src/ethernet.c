@@ -53,47 +53,54 @@ void tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, ui
   ethernet_addr haddr;
   struct ethernet_hdr *eth;
 
-  mbuf->port = port->port_num;
-  mbuf->packet_type = 1;
+	if (!mbuf || (!paddr && !dest)) {
+		return;
+	}
 
-  if (is_ether_broadcast(dest) == 0) {
-    uint8_t *pp = (uint8_t *)rte_pktmbuf_prepend(mbuf, sizeof(uint8_t) * 14);
-    if (!pp) {
-      printf("mbuf prepend error\n");
-      return;
-    }
-    eth = (struct ethernet_hdr *)pp;
-    rte_memcpy(eth->dest.addr, dest, ETHER_ADDR_LEN);
-    rte_memcpy(eth->src.addr, port->mac_addr.addr, ETHER_ADDR_LEN);
-    eth->type = htons(type);
-
-    len = sizeof(struct ethernet_hdr) + size;
-    if (len < 64) {
-      pp += len;
-      memset(pp, 1, 64 - len);
-      len = 64;
-    }
-    else if (size > 1514) {
-      return;
-    }
-    mbuf->pkt_len = len;
-    mbuf->data_len = len;
-		tx_pkt(port, mbuf);
-    return;
-  }
+//  if (is_ether_broadcast(dest) == 0) {
+//    uint8_t *pp = (uint8_t *)rte_pktmbuf_prepend(mbuf, sizeof(uint8_t) * 14);
+//    if (!pp) {
+//      printf("mbuf prepend error\n");
+//      return;
+//    }
+//    eth = (struct ethernet_hdr *)pp;
+//    rte_memcpy(eth->dest.addr, dest, ETHER_ADDR_LEN);
+//    rte_memcpy(eth->src.addr, port->mac_addr.addr, ETHER_ADDR_LEN);
+//    eth->type = htons(type);
+//
+//    len = sizeof(struct ethernet_hdr) + size;
+//    if (len < 64) {
+//      pp += len;
+//      memset(pp, 1, 64 - len);
+//      len = 64;
+//    }
+//    else if (size > 1514) {
+//      return;
+//    }
+//    mbuf->pkt_len = len;
+//    mbuf->data_len = len;
+//		tx_pkt(port, mbuf);
+//    return;
+//  }
 
   uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
   //ret = arp_resolve(paddr, &haddr, p, size, port);
 	/* For the time being, put the broadcast addr on */
-	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
-		haddr.addr[i] = ether_broadcast.addr[i];
+	if (is_ether_broadcast(dest) == 0) {
+		for (int i = 0; i < ETHER_ADDR_LEN; i++) {
+			haddr.addr[i] = ether_broadcast.addr[i];
+		}
+	}
+	else { //arp_resolve
+		for (int i = 0; i < ETHER_ADDR_LEN; i++) {
+			haddr.addr[i] = ether_broadcast.addr[i];
+		}
 	}
 	ret = 1;
   if (ret != 1) {
     return;
   }
 
-  uint8_t *q = p;
   uint16_t _type = 0x0800;
   uint8_t *pp = (uint8_t *)rte_pktmbuf_prepend(mbuf, sizeof(uint8_t) * 14);
   if (!pp) {
