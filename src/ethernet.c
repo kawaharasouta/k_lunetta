@@ -12,6 +12,10 @@
 #include"include/pkt_io.h"
 #include"include/ethernet.h"
 
+#define ETHER_PAYLOAD_MAX_LEN 1500
+#define ETHER_FRAME_MIN_LEN 64
+#define ETHER_HEADER_LEN 14
+
 struct ether_table {
 	uint16_t port_num;
 	ethernet_addr mac_addr;
@@ -63,7 +67,7 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_
 	ethernet_addr haddr;
 	struct ethernet_hdr *eth;
 
-	if (size > 1500 && !mbuf && (!paddr && !dest)) {
+	if (size > ETHER_PAYLOAD_MAX_LEN || !mbuf || (!paddr && !dest)) {
 		return;
 	}
 
@@ -84,7 +88,7 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_
 		}
 	}
 
-	uint8_t *pp = (uint8_t *)rte_pktmbuf_prepend(mbuf, sizeof(uint8_t) * 14);
+	uint8_t *pp = (uint8_t *)rte_pktmbuf_prepend(mbuf, sizeof(uint8_t) * ETHER_HEADER_LEN);
 	if (!pp) {
 		printf("mbuf prepend error\n");
 		return;
@@ -96,10 +100,10 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct port_config *port, uint16_
 	eth->type = htons(type);
 
 	len = sizeof(struct ethernet_hdr) + size;
-	if (len < 64) {
+	if (len < ETHER_FRAME_MIN_LEN) {
 		pp += len;
-		memset(pp, 0x00, 64 - len);
-		len = 64;
+		memset(pp, 0x00, ETHER_FRAME_MIN_LEN - len);
+		len = ETHER_FRAME_MIN_LEN;
 	}
 	mbuf->pkt_len = len;
 	mbuf->data_len = len;
