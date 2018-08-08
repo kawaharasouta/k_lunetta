@@ -72,7 +72,7 @@ port_init(/*uint16_t port*/struct port_config *port)
 	if (retval < 0) {
 		return retval;
 	}
-  
+	
 	/* Display the port MAC address. */
 	rte_eth_macaddr_get(nport, &addr);
 	printf("Port %u MAC: %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 "\n",
@@ -87,7 +87,7 @@ port_init(/*uint16_t port*/struct port_config *port)
 	
 	/* Enable RX in promiscuous mode for the Ethernet port. */
 	rte_eth_promiscuous_enable(nport);
-  
+	
 	return 0;
 }
 
@@ -95,14 +95,14 @@ int
 dpdk_init(void){
 	int ret;
 	unsigned nb_ports;
-	uint16_t portid;  
+	uint16_t portid;	
 	char *pg_name[] = {"k_lunetta"};
 
 	ret = rte_eal_init(1, pg_name);
 	if (ret < 0) {
 		return -1;
 	}
-  
+	
 	nb_ports = rte_eth_dev_count();
 	if (nb_ports != 1) {
 		return -1;
@@ -110,11 +110,11 @@ dpdk_init(void){
 	
 	/* Creates a new mempool in memory to hold the mbufs. */
 	mbuf_pool = rte_pktmbuf_pool_create("MBUF_POOL", NUM_MBUFS * nb_ports, MBUF_CACHE_SIZE, 0, RTE_MBUF_DEFAULT_BUF_SIZE, rte_socket_id());
-  
+	
 	if (mbuf_pool == NULL) {
 		return -1;
 	}
-  
+	
 	return 0;
 }
 
@@ -151,7 +151,8 @@ tx_pkt (struct port_config *port, struct rte_mbuf *mbuf) {
 
 
 /** 1lcore per 1port **/
-void lcore_rxtxmain(struct port_config *port) {
+void 
+lcore_rxtxmain(struct port_config *port) {
 	printf("lcore_rxtxmain");
 	printf("port->port_num: %u\n", port->port_num);
 	while (1) {
@@ -165,7 +166,8 @@ void lcore_rxtxmain(struct port_config *port) {
 		tx_pkt(port, mbuf);
 	}
 }
-int launch_lcore_rxtx(void *arg) {
+int 
+launch_lcore_rxtx(void *arg) {
 	unsigned lcore_id = rte_lcore_id();
 	printf("lcore%u launched\n", lcore_id);
 
@@ -176,15 +178,16 @@ int launch_lcore_rxtx(void *arg) {
 
 
 #ifdef DEBUG_PKT_IO
-int main(void) {
+int 
+main(void) {
 	if (dpdk_init() == -1) {
 		fprintf(stderr, "dpdk_init error\n");
 		exit(1);
 	}
 
-  struct port_config port;
-  port.port_num = 0;
-  port_init(&port);
+	struct port_config port;
+	port.port_num = 0;
+	port_init(&port);
 	int ret;
 	int rx_pop_num;
 
