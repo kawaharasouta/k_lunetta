@@ -17,7 +17,6 @@
 #include"include/ethernet.h"
 
 
-
 int 
 main(void) {
 	if (dpdk_init() == -1) {

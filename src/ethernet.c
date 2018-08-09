@@ -115,32 +115,35 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t
 		printf("mbuf prepend error\n");
 		return;
 	}
-
 	eth = (struct ethernet_hdr *)pp;
 	rte_memcpy(eth->dest.addr, haddr.addr, ETHER_ADDR_LEN);
 	rte_memcpy(eth->src.addr, port->mac_addr.addr, ETHER_ADDR_LEN);
 	eth->type = htons(type);
-
 	len = sizeof(struct ethernet_hdr) + size;
 	if (len < ETHER_FRAME_MIN_LEN) {
 		pp += len;
 		memset(pp, 0x00, ETHER_FRAME_MIN_LEN - len);
 		len = ETHER_FRAME_MIN_LEN;
 	}
-	tx_pkt(port->port_num, &mbuf, &len, 1);
+
+	/********/
+	mbuf->pkt_len = len;
+	mbuf->data_len = len;
+	tx_pkt(port->port_num, &mbuf, 1);
+	/********/
+
 	return;
 }
 
 void 
-rx_ether(struct ether_port *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
-	uint32_t size = rte_pktmbuf_pkt_len(mbuf);
+rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
 	printf("size: %d\n", size);
 	if (size > 1514)
 		return;
 
-	uint32_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
-	struct ethernet_hdr *packet = (struct ethernet_hdr *)p;
-	uint8_t *pp = (uint8_t *)p;
+	//uint32_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
+	struct ethernet_hdr *packet = (struct ethernet_hdr *)data;
+	uint8_t *pp = data;
 
 	printf("sizeof %u\n", sizeof(struct ethernet_hdr));
 	pp += sizeof(struct ethernet_hdr);

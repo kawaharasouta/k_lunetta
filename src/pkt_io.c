@@ -100,21 +100,17 @@ dpdk_init(void){
 	char *pg_name[] = {"k_lunetta"};
 
 	ret = rte_eal_init(1, pg_name);
-	if (ret < 0) {
+	if (ret < 0)
 		return -1;
-	}
 	
 	nb_ports = rte_eth_dev_count();
-	if (nb_ports != 1) {
+	if (nb_ports != 1)
 		return -1;
-	}
 	
 	/* Creates a new mempool in memory to hold the mbufs. */
 	mbuf_pool = rte_pktmbuf_pool_create("MBUF_POOL", NUM_MBUFS * nb_ports, MBUF_CACHE_SIZE, 0, RTE_MBUF_DEFAULT_BUF_SIZE, rte_socket_id());
-	
-	if (mbuf_pool == NULL) {
+	if (mbuf_pool == NULL)
 		return -1;
-	}
 	
 	return 0;
 }
@@ -130,42 +126,36 @@ rx_pkt (struct ether_port *port) {
 	nb_rx = rte_eth_rx_burst(nport, 0, bufs, BURST_SIZE);
 	for (int i = 0; i < nb_rx ; i++) {
 #ifndef DEBUG_PKT_IO
-		rx_ether(port, bufs[i]);
+		uint8_t *p = rte_pktmbuf_mtod(bufs[i], uint8_t*);
+		uint32_t size = rte_pktmbuf_pkt_len(bufs[i]);
+		rx_ether(port, bufs[i], p, size);
 		rte_pktmbuf_free(bufs[i]);
 #endif
 	}
+	return;
 }
 void
-tx_pkt (uint16_t port_num, struct rte_mbuf **mbuf, uint16_t *size, int num) {
+tx_pkt (uint16_t port_num, struct rte_mbuf **mbuf, int num) {
 	struct rte_mbuf *bufs[BURST_SIZE];
 	uint16_t nb_tx;
 	int i;
 
 	do {
 		for (i = 0; i < num && i < BURST_SIZE; i++) {
-			mbuf[i]->pkt_len = size[i];
-			mbuf[i]->data_len = size[i];
-			mbuf[i]->port = port_num;
-			mbuf[i]->packet_type = 1;
-			bufs[i] = mbuf[i];
+			(*mbuf)->port = port_num;
+			(*mbuf)->packet_type = 1;
+			bufs[i] = *mbuf;
+			mbuf++;
 		}
 		nb_tx = rte_eth_tx_burst(port_num, 0, bufs, 1);
 		for (int j = nb_tx; j < i; j++)
 			rte_pktmbuf_free(bufs[j]);
 		num -= i;
 	} while (num > 0);
+	return;
 }
 
 /** rxmain **/
-void
-lcore_rxmain(struct ether_port *port) {
-	printf("lcore_rxmain");
-	printf("port->port_num: %u\n", port->port_num);
-	
-	while (1) {
-		rx_pkt(port);
-	}
-}
 int
 launch_lcore_rx(void *arg) {
 	unsigned lcore_id = rte_lcore_id();
@@ -177,7 +167,6 @@ launch_lcore_rx(void *arg) {
 	}
 	return 0;
 }
-
 
 
 
@@ -206,5 +195,6 @@ main(void) {
 		mbuf->data_len = 60;
 		tx_pkt(&port, mbuf);
 	}
+	return 0;
 }
 #endif
