@@ -131,22 +131,29 @@ rx_pkt (struct ether_port *port) {
 	for (int i = 0; i < nb_rx ; i++) {
 #ifndef DEBUG_PKT_IO
 		rx_ether(port, bufs[i]);
+		rte_pktmbuf_free(bufs[i]);
 #endif
 	}
 }
 void
-tx_pkt (uint16_t port_num, struct rte_mbuf *mbuf) {
+tx_pkt (uint16_t port_num, struct rte_mbuf **mbuf, uint16_t *size, int num) {
 	struct rte_mbuf *bufs[BURST_SIZE];
-	int i, j, k;
 	uint16_t nb_tx;
+	int i;
 
-	mbuf->port = port_num;
-	mbuf->packet_type = 1;
-	bufs[0] = mbuf;
-	nb_tx = rte_eth_tx_burst(port_num, 0, bufs, 1);
-	if (nb_tx == 0)
-		rte_pktmbuf_free(bufs[0]);
-	return;
+	do {
+		for (i = 0; i < num && i < BURST_SIZE; i++) {
+			mbuf[i]->pkt_len = size[i];
+			mbuf[i]->data_len = size[i];
+			mbuf[i]->port = port_num;
+			mbuf[i]->packet_type = 1;
+			bufs[i] = mbuf[i];
+		}
+		nb_tx = rte_eth_tx_burst(port_num, 0, bufs, 1);
+		for (int j = nb_tx; j < i; j++)
+			rte_pktmbuf_free(bufs[j]);
+		num -= i;
+	} while (num > 0);
 }
 
 /** rxmain **/
@@ -165,33 +172,12 @@ launch_lcore_rx(void *arg) {
 	printf("lcore%u launched\n", lcore_id);
 	struct ether_port *p = arg;
 	printf("port_num:%u\n", p->port_num);
-	lcore_rxmain((struct ether_port *)arg);
+	while (1) {
+		rx_pkt((struct ether_port *)arg);
+	}
 	return 0;
 }
 
-/** 1lcore per 1port **/
-void
-lcore_rxtxmain(struct ether_port *port) {
-	printf("lcore_rxtxmain");
-	//printf("port->port_num: %u\n", port->port_num);
-	while (1) {
-		rx_pkt(port);
-		struct rte_mbuf *mbuf;
-		mbuf = rte_pktmbuf_alloc(mbuf_pool);
-		uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
-		memset(p, 1, 60);
-		mbuf->pkt_len = 60;
-		mbuf->data_len = 60;
-		tx_pkt(port, mbuf);
-	}
-}
-int 
-launch_lcore_rxtx(void *arg) {
-	unsigned lcore_id = rte_lcore_id();
-	printf("lcore%u launched\n", lcore_id);
-	lcore_rxtxmain((struct ether_port *)arg);
-	return 0;
-}
 
 
 

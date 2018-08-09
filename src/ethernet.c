@@ -79,7 +79,6 @@ print_ethernet_hdr(struct ethernet_hdr *ether_hdr) {
 	printf("ether src addr: ");
 	print_mac_addr(&ether_hdr->src);
 	printf("type: %04x\n", ntohs(ether_hdr->type));
-
 	return;
 }
 
@@ -128,9 +127,7 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t
 		memset(pp, 0x00, ETHER_FRAME_MIN_LEN - len);
 		len = ETHER_FRAME_MIN_LEN;
 	}
-	mbuf->pkt_len = len;
-	mbuf->data_len = len;
-	tx_pkt(port->port_num, mbuf);
+	tx_pkt(port->port_num, &mbuf, &len, 1);
 	return;
 }
 
@@ -144,15 +141,12 @@ rx_ether(struct ether_port *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
 	uint32_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
 	struct ethernet_hdr *packet = (struct ethernet_hdr *)p;
 	uint8_t *pp = (uint8_t *)p;
-	//struct ether_port *port;
-	//port = find_port_pointer(port_num);
 
 	printf("sizeof %u\n", sizeof(struct ethernet_hdr));
 	pp += sizeof(struct ethernet_hdr);
 	size -= sizeof(struct ethernet_hdr);
 
 	print_ethernet_hdr(packet);
-
 	printf("port mac addr:");
 	print_mac_addr(&port->mac_addr);
 	
@@ -180,8 +174,5 @@ rx_ether(struct ether_port *port, struct rte_mbuf *mbuf/*, uint32_t size*/) {
 	else {//different mac addr
 		printf("different mac addr\n");
 	}
-
-	rte_pktmbuf_free(mbuf);
-
 	return;
 }

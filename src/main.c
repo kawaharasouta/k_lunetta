@@ -17,6 +17,7 @@
 #include"include/ethernet.h"
 
 
+
 int 
 main(void) {
 	if (dpdk_init() == -1) {
@@ -32,20 +33,12 @@ main(void) {
 	int rx_pop_num;
 
 	struct ether_port *ether_port = get_port_pointer();
-	//launch_lcore_rx(ether_port);
 	rte_eal_remote_launch(launch_lcore_rx, (void *)ether_port, 1);
-	//launch_lcore_rx((void *)ether_port);
 
 	while (1) {
-		//rx_pkt(&port);
-
 		struct rte_mbuf *mbuf;
 		mbuf = rte_pktmbuf_alloc(mbuf_pool);
 		uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
-		//memset(p, 0x11, 60);
-		//mbuf->pkt_len = 60;
-		//mbuf->data_len = 60;
-		//tx_pkt(&port, mbuf);
-		tx_ether(mbuf, 0, /*&port*/ether_port, ETHERTYPE_IP, NULL, &ether_broadcast);
+		tx_ether(mbuf, 0, ether_port, ETHERTYPE_IP, NULL, &ether_broadcast);
 	}
 }
