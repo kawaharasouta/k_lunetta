@@ -129,7 +129,7 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t
 	/********/
 	mbuf->pkt_len = len;
 	mbuf->data_len = len;
-	tx_pkt(port->port_num, &mbuf, 1);
+	tx_pkt(port, &mbuf, 1);
 	/********/
 
 	return;

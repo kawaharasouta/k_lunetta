@@ -13,5 +13,5 @@ extern struct rte_mempool *mbuf_pool;
 int
 launch_lcore_rx(void *arg);
 void
-tx_pkt(uint16_t port_num, struct rte_mbuf **mbuf, int num);
+tx_pkt(struct ether_port *port, struct rte_mbuf **mbuf, int num);
 #endif

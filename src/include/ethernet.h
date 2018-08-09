@@ -41,6 +41,7 @@ int
 equal_mac_addr(ethernet_addr *addr1, ethernet_addr *addr2);
 int 
 is_ether_broadcast(ethernet_addr *addr);
+
 void 
 rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size);
 void 

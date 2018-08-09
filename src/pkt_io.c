@@ -135,19 +135,19 @@ rx_pkt (struct ether_port *port) {
 	return;
 }
 void
-tx_pkt (uint16_t port_num, struct rte_mbuf **mbuf, int num) {
+tx_pkt (struct ether_port *port, struct rte_mbuf **mbuf, int num) {
 	struct rte_mbuf *bufs[BURST_SIZE];
 	uint16_t nb_tx;
 	int i;
 
 	do {
 		for (i = 0; i < num && i < BURST_SIZE; i++) {
-			(*mbuf)->port = port_num;
+			(*mbuf)->port = port->port_num;
 			(*mbuf)->packet_type = 1;
 			bufs[i] = *mbuf;
 			mbuf++;
 		}
-		nb_tx = rte_eth_tx_burst(port_num, 0, bufs, 1);
+		nb_tx = rte_eth_tx_burst(port->port_num, 0, bufs, 1);
 		for (int j = nb_tx; j < i; j++)
 			rte_pktmbuf_free(bufs[j]);
 		num -= i;
