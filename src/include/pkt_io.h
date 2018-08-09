@@ -10,6 +10,8 @@
 
 extern struct rte_mempool *mbuf_pool;
 
-void 
-tx_pkt (uint16_t port_num, struct rte_mbuf *mbuf);
+int
+launch_lcore_rx(void *arg);
+//void
+//tx_pkt (uint16_t port_num, struct rte_mbuf *mbuf);
 #endif

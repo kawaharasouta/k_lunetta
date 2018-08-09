@@ -14,6 +14,7 @@
 
 #include"include/lunetta.h"
 #include"include/pkt_io.h"
+#include"include/ethernet.h"
 
 struct rte_mempool *mbuf_pool;
 static const struct rte_eth_conf port_conf_default = {
@@ -120,7 +121,7 @@ dpdk_init(void){
 
 
 void
-rx_pkt (struct port_config *port) {
+rx_pkt (struct ether_port *port) {
 	uint16_t nport = port->port_num;
 	struct rte_mbuf *bufs[BURST_SIZE];
 	uint16_t nb_rx = 0;
@@ -129,7 +130,7 @@ rx_pkt (struct port_config *port) {
 	nb_rx = rte_eth_rx_burst(nport, 0, bufs, BURST_SIZE);
 	for (int i = 0; i < nb_rx ; i++) {
 #ifndef DEBUG_PKT_IO
-		rx_ether(port->port_num, bufs[i]);
+		rx_ether(port, bufs[i]);
 #endif
 	}
 }
@@ -148,12 +149,31 @@ tx_pkt (uint16_t port_num, struct rte_mbuf *mbuf) {
 	return;
 }
 
+/** rxmain **/
+void
+lcore_rxmain(struct ether_port *port) {
+	printf("lcore_rxmain");
+	printf("port->port_num: %u\n", port->port_num);
+	
+	while (1) {
+		rx_pkt(port);
+	}
+}
+int
+launch_lcore_rx(void *arg) {
+	unsigned lcore_id = rte_lcore_id();
+	printf("lcore%u launched\n", lcore_id);
+	struct ether_port *p = arg;
+	printf("port_num:%u\n", p->port_num);
+	lcore_rxmain((struct ether_port *)arg);
+	return 0;
+}
 
 /** 1lcore per 1port **/
-void 
-lcore_rxtxmain(struct port_config *port) {
+void
+lcore_rxtxmain(struct ether_port *port) {
 	printf("lcore_rxtxmain");
-	printf("port->port_num: %u\n", port->port_num);
+	//printf("port->port_num: %u\n", port->port_num);
 	while (1) {
 		rx_pkt(port);
 		struct rte_mbuf *mbuf;
@@ -169,8 +189,7 @@ int
 launch_lcore_rxtx(void *arg) {
 	unsigned lcore_id = rte_lcore_id();
 	printf("lcore%u launched\n", lcore_id);
-
-	lcore_rxtxmain((struct port_config *)arg);
+	lcore_rxtxmain((struct ether_port *)arg);
 	return 0;
 }
 

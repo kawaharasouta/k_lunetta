@@ -27,16 +27,21 @@ main(void) {
 	struct port_config port;
 	port.port_num = 0;
 	port_init(&port);
+	ethernet_init(&port, 1);
 	int ret;
 	int rx_pop_num;
 
+	struct ether_port *ether_port = get_port_pointer();
+	//launch_lcore_rx(ether_port);
+	rte_eal_remote_launch(launch_lcore_rx, (void *)ether_port, 1);
+	//launch_lcore_rx((void *)ether_port);
+
 	while (1) {
-		rx_pkt(&port);
+		//rx_pkt(&port);
 
 		struct rte_mbuf *mbuf;
 		mbuf = rte_pktmbuf_alloc(mbuf_pool);
 		uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
-		struct ether_port *ether_port = get_port_pointer();
 		//memset(p, 0x11, 60);
 		//mbuf->pkt_len = 60;
 		//mbuf->data_len = 60;
