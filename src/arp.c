@@ -29,7 +29,7 @@ static struct {
 		struct arp_entry *head;
 		struct arp_entry *pool;
 	} table;
-	//pthread_mutex_t mutex;
+	pthread_mutex_t mutex;
 	//struct port_config *port;
 } arp_table;
 
@@ -64,7 +64,7 @@ void arp_init(struct port_config *port) {
 	arp_table.table.head = NULL;
 	arp_table.table.pool = arp_table.table.table;
 
-	//pthread_mutex_init(&arp.mutex, NULL);
+	pthread_mutex_init(&arp_table.mutex, NULL);
 	return 0;
 }
 
@@ -130,25 +130,25 @@ int arp_table_insert(const uint32_t *pa, const ethernet_addr *ha, struct ether_p
 int arp_resolve(struct ether_port *port, const uint32_t *pa, ethernet_addr *ha, const void *data, uint32_t size) {
 	struct arp_entry *entry;
 	
-	//pthread_mutex_lock(&arp.mutex);
+	pthread_mutex_lock(&arp_table.mutex);
 	if (arp_table_select(pa, ha) == 0) {
-	    //pthread_mutex_unlock(&arp.mutex);
+			pthread_mutex_unlock(&arp_table.mutex);
 	    return 1;
 	}
 
 	/* If it does not exist in arp_table, save the data in the table and send arp_req. */
 	if (!data) {
-	    //pthread_mutex_unlock(&arp.mutex);
+			pthread_mutex_unlock(&arp_table.mutex);
 	    return -1;
 	}
 	entry = arp_table.table.pool;
 	if (!entry) {
-	    //pthread_mutex_unlock(&arp.mutex);
+			pthread_mutex_unlock(&arp_table.mutex);
 	    return -1;
 	}
 	entry->data = malloc(size);
 	if (!entry->data) {
-	    //pthread_mutex_unlock(&arp.mutex);
+			pthread_mutex_unlock(&arp_table.mutex);
 	    return -1;
 	}
 	memcpy(entry->data, data, size);
@@ -235,15 +235,19 @@ void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint3
 	if (ntohs(hdr->arphdr.proto_type) != ETHERTYPE_IP) return;
 	if (hdr->arphdr.hrd_len != ETHER_ADDR_LEN) return;
 	if (hdr->arphdr.proto_len != IP_ADDR_LEN) return;
-
+	pthread_mutex_lock(&arp_table.mutex);
 	merge_flag = arp_table_renew(&hdr->s_ip_addr, &hdr->s_eth_addr, port);
+	pthread_mutex_unlock(&arp_table.mutex);
 
 	uint32_t addr = get_ip_addr(port);
-	printf("s_ip_addr: %x", ntohl(hdr->s_ip_addr));
+	printf("s_ip_addr: %x\n", ntohl(hdr->s_ip_addr));
 
 	if (ntohl(hdr->d_ip_addr) == addr) {
-		if (merge_flag == 0)
+		if (merge_flag == 0) {
+			pthread_mutex_lock(&arp_table.mutex);
 			arp_table_insert(&hdr->s_ip_addr, &hdr->s_eth_addr, port);
+			pthread_mutex_unlock(&arp_table.mutex);
+		}
 		if (ntohs(hdr->arphdr.ar_op) == ARPOP_REQUEST)
 			/* port?  addr? */
 			send_rep(/*&hdr->s_ip_addr*/port, &hdr->s_ip_addr, &hdr->s_eth_addr);
