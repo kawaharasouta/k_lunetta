@@ -246,7 +246,7 @@ void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint3
 			arp_table_insert(&hdr->s_ip_addr, &hdr->s_eth_addr);
 		if (ntohs(hdr->arphdr.ar_op) == ARPOP_REQUEST)
 			/* port?  addr? */
-			send_rep(/*&hdr->s_ip_addr*/port, &hdr->s_eth_addr, &hdr->s_eth_addr);
+			send_rep(/*&hdr->s_ip_addr*/port, &hdr->s_ip_addr, &hdr->s_eth_addr);
 	}
 
 	arp_table_dump();
