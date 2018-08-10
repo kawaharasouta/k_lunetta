@@ -38,7 +38,7 @@ void arp_table_dump() {
 	printf("===========arp_table_dump==========\n");
 	for (entry = arp_table.table.head; entry; entry = entry->next) {
 		printf("----------------------------------\n");
-		printf("ip addr: %x\tmac addr: ", entry->ha);
+		printf("ip addr: %x\tmac addr: ", entry->pa);
 		print_mac_addr(&entry->ha);
 	}
 	printf("=============end table==============\n");
@@ -111,6 +111,8 @@ int arp_table_renew(const uint32_t *pa, const ethernet_addr *ha) {
 
 int arp_table_insert(const uint32_t *pa, const ethernet_addr *ha) {
 	struct arp_entry *entry;
+	printf("arp_table_insert\n");
+	printf("t_ip_addr: %x\n", *pa);
 
 	entry = arp_table.table.pool;
 	if (!entry) {
@@ -183,7 +185,9 @@ void send_req(struct ether_port *port, const uint32_t *tpa) {
 	}
 	request->s_ip_addr = htonl(get_ip_addr(port));
 	memset(&request->d_eth_addr, 0, ETHER_ADDR_LEN);
-	request->d_ip_addr = htonl(*tpa);
+	request->d_ip_addr = *tpa;
+	//request->d_ip_addr = htonl(0x0a000003);
+
 
 	tx_ether(port, mbuf, sizeof(struct arp_ether), ETHERTYPE_ARP, NULL, &ether_broadcast);
 	return;//  0;
@@ -217,10 +221,6 @@ void send_rep(struct ether_port *port, const uint32_t *tpa, const ethernet_addr 
 	tx_ether(port, mbuf, sizeof(struct arp_ether), ETHERTYPE_ARP, tpa, NULL);
 }
 
-void tx_arp() {
-
-}
-
 void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
 	struct arp_ether *hdr;
 	int merge_flag = 0;
@@ -239,15 +239,14 @@ void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint3
 	merge_flag = arp_table_renew(&hdr->s_ip_addr, &hdr->s_eth_addr);
 
 	uint32_t addr = get_ip_addr(port);
-	printf("port ipaddr: %x\nhdr d ipaddr: %x\n", addr, hdr->d_ip_addr);
-	printf("merge_flag: %d\n", merge_flag);
+	printf("s_ip_addr: %x", ntohl(hdr->s_ip_addr));
 
-	if (htonl(hdr->d_ip_addr) == addr) {
+	if (ntohl(hdr->d_ip_addr) == addr) {
 		if (merge_flag == 0)
 			arp_table_insert(&hdr->s_ip_addr, &hdr->s_eth_addr);
 		if (ntohs(hdr->arphdr.ar_op) == ARPOP_REQUEST)
 			/* port?  addr? */
-			send_rep(/*&hdr->s_ip_addr*/port, &hdr->s_eth_addr, arp_table.port);
+			send_rep(/*&hdr->s_ip_addr*/port, &hdr->s_eth_addr, &hdr->s_eth_addr);
 	}
 
 	arp_table_dump();

@@ -18,6 +18,8 @@
 
 #define ETHER_PORT_MAX_NUM 1
 
+void hexdump(uint8_t *buf, int size);
+
 struct ether_port ports[ETHER_PORT_MAX_NUM];
 
 ethernet_addr ether_broadcast = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -110,6 +112,7 @@ tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t
 	}
 
 	uint8_t *pp = (uint8_t *)rte_pktmbuf_prepend(mbuf, sizeof(uint8_t) * ETHER_HEADER_LEN);
+	uint8_t *ppp = pp;
 	if (!pp) {
 		printf("mbuf prepend error\n");
 		return;
@@ -124,6 +127,10 @@ tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t
 		memset(pp, 0x00, ETHER_FRAME_MIN_LEN - len);
 		len = ETHER_FRAME_MIN_LEN;
 	}
+
+	printf("***** tx_ether *****\n");
+	hexdump(ppp, len);
+	printf("********************\n");
 
 	/********/
 	mbuf->pkt_len = len;
@@ -177,4 +184,18 @@ rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t
 		printf("different mac addr\n");
 	}
 	return;
+}
+
+
+
+
+void hexdump(uint8_t *buf, int size) {
+	int i;
+	for (i = 0;i < size; i++){
+		fprintf(stdout, "%02x ", *(buf + i));
+		if ((i + 1) % 8 == 0){
+			fprintf(stdout, "\n");
+		}
+	}
+	fprintf(stdout, "\nfin\n");
 }
