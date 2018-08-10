@@ -55,23 +55,23 @@ print_mac_addr(ethernet_addr *addr) {
 }
 
 int 
-equal_mac_addr(ethernet_addr *addr1, ethernet_addr *addr2) {
+is_equal_mac_addr(ethernet_addr *addr1, ethernet_addr *addr2) {
 	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
 		if (addr1->addr[i] != addr2->addr[i])
-			return -1;
+			return 0;
 	}
-	return 0;
+	return 1;
 }
 
 int 
 is_ether_broadcast(ethernet_addr *addr) {
 	if (!addr)
-		return -1;
+		return 0;
 	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
 		if (addr->addr[i] != 0xff)
-			return -1;
+			return 0;
 	}
-	return 0;
+	return 1;
 }
 
 void 
@@ -159,7 +159,7 @@ rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t
 	printf("port mac addr:");
 	print_mac_addr(&port->mac_addr);
 	
-	if (equal_mac_addr(&port->mac_addr, &packet->dest) == 0 || is_ether_broadcast(&packet->dest) == 0 ) {
+	if (is_equal_mac_addr(&port->mac_addr, &packet->dest) || is_ether_broadcast(&packet->dest)) {
 		switch (ntohs(packet->type)) {
 			case ETHERTYPE_IP:
 			{

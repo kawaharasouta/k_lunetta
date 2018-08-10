@@ -114,7 +114,7 @@ int arp_table_insert(const uint32_t *pa, const ethernet_addr *ha, struct ether_p
 
 	entry = arp_table.table.pool;
 	if (!entry) {
-	    return -1;
+			return -1;
 	}
 	entry->pa = *pa;
 	memcpy(&entry->ha, ha, sizeof(ethernet_addr));
@@ -123,7 +123,6 @@ int arp_table_insert(const uint32_t *pa, const ethernet_addr *ha, struct ether_p
 	arp_table.table.pool = entry->next;
 	entry->next = arp_table.table.head;
 	arp_table.table.head = entry;
-	//pthread_cond_broadcast(&entry->cond);
 	return 0;
 }
 
@@ -133,23 +132,23 @@ int arp_resolve(struct ether_port *port, const uint32_t *pa, ethernet_addr *ha, 
 	pthread_mutex_lock(&arp_table.mutex);
 	if (arp_table_select(pa, ha) == 0) {
 			pthread_mutex_unlock(&arp_table.mutex);
-	    return 1;
+			return 1;
 	}
 
 	/* If it does not exist in arp_table, save the data in the table and send arp_req. */
 	if (!data) {
 			pthread_mutex_unlock(&arp_table.mutex);
-	    return -1;
+			return -1;
 	}
 	entry = arp_table.table.pool;
 	if (!entry) {
 			pthread_mutex_unlock(&arp_table.mutex);
-	    return -1;
+			return -1;
 	}
 	entry->data = malloc(size);
 	if (!entry->data) {
 			pthread_mutex_unlock(&arp_table.mutex);
-	    return -1;
+			return -1;
 	}
 	memcpy(entry->data, data, size);
 	entry->port = port;
@@ -160,8 +159,8 @@ int arp_resolve(struct ether_port *port, const uint32_t *pa, ethernet_addr *ha, 
 	entry->pa = *pa;
 	time(&entry->timestamp);
 	send_req(port, pa);
-	//pthread_mutex_unlock(&arp.mutex);
-	return  0;
+	pthread_mutex_unlock(&arp_table.mutex);
+	return	0;
 }
 
 void send_req(struct ether_port *port, const uint32_t *tpa) {
@@ -249,7 +248,7 @@ void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint3
 			pthread_mutex_unlock(&arp_table.mutex);
 		}
 		if (ntohs(hdr->arphdr.ar_op) == ARPOP_REQUEST)
-			/* port?  addr? */
+			/* port?	addr? */
 			send_rep(/*&hdr->s_ip_addr*/port, &hdr->s_ip_addr, &hdr->s_eth_addr);
 	}
 
