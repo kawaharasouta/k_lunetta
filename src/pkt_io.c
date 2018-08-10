@@ -142,10 +142,7 @@ tx_pkt (struct ether_port *port, struct rte_mbuf **mbuf, int num) {
 
 	do {
 		for (i = 0; i < num && i < BURST_SIZE; i++) {
-			(*mbuf)->port = port->port_num;
-			(*mbuf)->packet_type = 1;
-			bufs[i] = *mbuf;
-			mbuf++;
+			bufs[i] = *mbuf++;
 		}
 		nb_tx = rte_eth_tx_burst(port->port_num, 0, bufs, 1);
 		for (int j = nb_tx; j < i; j++)

@@ -45,6 +45,6 @@ void arp_table_dump();
 void arp_init(struct port_config *port);
 int arp_resolve(const uint32_t *ip_addr, ethernet_addr *ether_addr, const void *data, uint32_t size, struct port_config *port);
 void tx_arp();
-void rx_arp(uint8_t *packet, uint32_t size, struct port_config *port);
+void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size);
 
 #endif

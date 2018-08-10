@@ -221,7 +221,7 @@ void tx_arp() {
 
 }
 
-void rx_arp(uint8_t *packet, uint32_t size, struct port_config *port) {
+void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
 	struct arp_ether *hdr;
 	int merge_flag = 0;
 	
@@ -230,7 +230,7 @@ void rx_arp(uint8_t *packet, uint32_t size, struct port_config *port) {
 	if (size < sizeof(struct arp_ether)) 
 		return;
 
-	hdr = (struct arp_ether *)packet;
+	hdr = (struct arp_ether *)data;
 	if (ntohs(hdr->arphdr.hrd_type) != ARP_HRD_ETHERNET) return;
 	if (ntohs(hdr->arphdr.proto_type) != ETHERTYPE_IP) return;
 	if (hdr->arphdr.hrd_len != ETHER_ADDR_LEN) return;
@@ -238,17 +238,18 @@ void rx_arp(uint8_t *packet, uint32_t size, struct port_config *port) {
 
 	merge_flag = arp_table_renew(&hdr->s_ip_addr, &hdr->s_eth_addr);
 
-	printf("port ipaddr: %x\nhdr d ipaddr: %x\n", port->ip_addr, hdr->d_ip_addr);
+	uint32_t addr = get_ip_addr(port);
+	printf("port ipaddr: %x\nhdr d ipaddr: %x\n", addr, hdr->d_ip_addr);
 	printf("merge_flag: %d\n", merge_flag);
 
-	if (htonl(hdr->d_ip_addr) == port->ip_addr) {
-		if (merge_flag == 0)
-			arp_table_insert(&hdr->s_ip_addr, &hdr->s_eth_addr);
-		if (ntohs(hdr->arphdr.ar_op) == ARPOP_REQUEST)
-			send_rep(&hdr->s_ip_addr, &hdr->s_eth_addr, arp_table.port);
-	}
-
-	arp_table_dump();
+//	if (htonl(hdr->d_ip_addr) == port->ip_addr) {
+//		if (merge_flag == 0)
+//			arp_table_insert(&hdr->s_ip_addr, &hdr->s_eth_addr);
+//		if (ntohs(hdr->arphdr.ar_op) == ARPOP_REQUEST)
+//			send_rep(&hdr->s_ip_addr, &hdr->s_eth_addr, arp_table.port);
+//	}
+//
+//	arp_table_dump();
 
 	return;
 }

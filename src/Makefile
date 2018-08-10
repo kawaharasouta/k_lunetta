@@ -47,7 +47,7 @@ ifeq ($(DEBUG), PKT_IO)
   SRCS-y := pkt_io.c
   CFLAGS += -DDEBUG_PKT_IO
 else
-  SRCS-y := main.c pkt_io.c ethernet.c
+  SRCS-y := main.c pkt_io.c ethernet.c arp.c ip.c 
 endif
 
 CFLAGS += -g

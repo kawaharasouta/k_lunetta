@@ -164,7 +164,7 @@ rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t
 			case ETHERTYPE_ARP:
 			{
 				printf("arp\n");
-				//rx_arp((uint8_t *)pp, pop_size, port);
+				rx_arp(port, mbuf, (uint8_t *)pp, size);
 				break;
 			}
 			default:
