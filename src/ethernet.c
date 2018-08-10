@@ -83,7 +83,7 @@ print_ethernet_hdr(struct ethernet_hdr *ether_hdr) {
 }
 
 void 
-tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t type, const void *paddr, ethernet_addr *dest) {
+tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t type, const void *paddr, ethernet_addr *dest) {
 	int ret;
 	uint32_t len;/* = 64;*/
 	ethernet_addr haddr;
@@ -96,11 +96,10 @@ tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t
 	uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
 	/* For the time being, put the broadcast addr on */
 	if (paddr) {
-		//ret = arp_resolve(paddr, &haddr, p, size, port);
-		ret = 1;
-		for (int i = 0; i < ETHER_ADDR_LEN; i++) {
-			haddr.addr[i] = ether_broadcast.addr[i];
-		}
+		ret = arp_resolve(paddr, &haddr, p, size, port);
+		//for (int i = 0; i < ETHER_ADDR_LEN; i++) {
+		//	haddr.addr[i] = ether_broadcast.addr[i];
+		//}
 		if (ret != 1)
 			return;
 	}

@@ -1,7 +1,6 @@
 #ifndef __ETHERNET_H_
 #define __ETHERNET_H_
 
-
 #define ETHERTYPE_IP 0x0800
 #define ETHERTYPE_ARP 0x0806
 #define ETHERTYPE_RARP 0x8035
@@ -45,5 +44,5 @@ is_ether_broadcast(ethernet_addr *addr);
 void 
 rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size);
 void 
-tx_ether(struct rte_mbuf *mbuf, uint32_t size, struct ether_port *port, uint16_t type, const void *paddr, ethernet_addr *dest);
+tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t type, const void *paddr, ethernet_addr *dest);
 #endif
