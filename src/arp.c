@@ -126,7 +126,7 @@ int arp_table_insert(const uint32_t *pa, const ethernet_addr *ha) {
 	return 0;
 }
 
-int arp_resolve(const uint32_t *pa, ethernet_addr *ha, const void *data, uint32_t size, struct port_config *port) {
+int arp_resolve(struct ether_port *port, const uint32_t *pa, ethernet_addr *ha, const void *data, uint32_t size) {
 	struct arp_entry *entry;
 	
 	//pthread_mutex_lock(&arp.mutex);
@@ -157,7 +157,7 @@ int arp_resolve(const uint32_t *pa, ethernet_addr *ha, const void *data, uint32_
 	arp_table.table.head = entry;
 	entry->pa = *pa;
 	time(&entry->timestamp);
-	send_req(pa, port);
+	send_req(port, pa);
 	//pthread_mutex_unlock(&arp.mutex);
 	return  0;
 }
