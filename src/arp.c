@@ -162,7 +162,7 @@ int arp_resolve(const uint32_t *pa, ethernet_addr *ha, const void *data, uint32_
 	return  0;
 }
 
-void send_req(const uint32_t *tpa, struct port_config *port) {
+void send_req(struct ether_port *port, const uint32_t *tpa) {
 	struct rte_mbuf *mbuf;
 	mbuf = rte_pktmbuf_alloc(mbuf_pool);
 
@@ -181,11 +181,11 @@ void send_req(const uint32_t *tpa, struct port_config *port) {
 	for(int i = 0; i < ETHER_ADDR_LEN; i++) {
 		request->s_eth_addr.addr[i] = port->mac_addr.addr[i];
 	}
-	request->s_ip_addr = htonl(port->ip_addr);
+	request->s_ip_addr = htonl(get_ip_addr(port));
 	memset(&request->d_eth_addr, 0, ETHER_ADDR_LEN);
 	request->d_ip_addr = htonl(*tpa);
 
-	tx_ether(mbuf, sizeof(struct arp_ether), port, ETHERTYPE_ARP, NULL, &ether_broadcast);
+	tx_ether(port, mbuf, sizeof(struct arp_ether), ETHERTYPE_ARP, NULL, &ether_broadcast);
 	return;//  0;
 }
 
@@ -208,7 +208,7 @@ void send_rep(struct ether_port *port, const uint32_t *tpa, const ethernet_addr 
 	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
 		rep->s_eth_addr.addr[i] = port->mac_addr.addr[i];
 	}
-	rep->s_ip_addr = /* htonl(port->ip_addr); */get_ip_addr(port);
+	rep->s_ip_addr = /* htonl(port->ip_addr); */htonl(get_ip_addr(port));
 	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
 		rep->d_eth_addr.addr[i] = tha->addr[i];
 	}

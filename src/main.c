@@ -34,16 +34,16 @@ main(void) {
 	int rx_pop_num;
 
 	struct ether_port *ether_port = get_port_pointer();
-	//rte_eal_remote_launch(launch_lcore_rx, (void *)ether_port, 1);
+	rte_eal_remote_launch(launch_lcore_rx, (void *)ether_port, 1);
 	//rte_eal_wait_lcore(1);
-
-	launch_lcore_rx(ether_port);
-
-	//while (1) {
-	//	struct rte_mbuf *mbuf;
-	//	mbuf = rte_pktmbuf_alloc(mbuf_pool);
-	//	uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
-	//	tx_ether(mbuf, 0, ether_port, ETHERTYPE_IP, NULL, &ether_broadcast);
-	//}
+	while (1) {
+		//struct rte_mbuf *mbuf;
+		//mbuf = rte_pktmbuf_alloc(mbuf_pool);
+		//uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
+		//tx_ether(mbuf, 0, ether_port, ETHERTYPE_IP, NULL, &ether_broadcast);
+		uint32_t tpa = 0x0a000003;
+		send_req(ether_port, &tpa);
+	}
+	rte_eal_wait_lcore(1);
 
 }
