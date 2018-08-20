@@ -98,7 +98,7 @@ tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t
 	uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
 	/* For the time being, put the broadcast addr on */
 	if (paddr) {
-		ret = arp_resolve(port, paddr, &haddr, p, size);
+		ret = arp_resolve(port, paddr, &haddr, (void *)mbuf, size);
 		//for (int i = 0; i < ETHER_ADDR_LEN; i++) {
 		//	haddr.addr[i] = ether_broadcast.addr[i];
 		//}

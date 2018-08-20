@@ -92,9 +92,13 @@ int arp_table_renew(const uint32_t *pa, const ethernet_addr *ha, struct ether_po
 			if (entry->data) {
 				//ethernet_output(ETHERNET_TYPE_IP, (uint8_t *)entry->data, entry->len, NULL, &entry->ha);
 				struct rte_mbuf *mbuf;
-				mbuf = rte_pktmbuf_alloc(mbuf_pool);
-				uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
-				rte_memcpy(p, entry->data, entry->size);
+				//mbuf = rte_pktmbuf_alloc(mbuf_pool);
+
+				/* change */
+				//uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
+				//rte_memcpy(p, entry->data, entry->size);
+				mbuf = (struct rte_mbuf *)entry->data;
+
 			
 				tx_ether(port, mbuf, entry->size, ETHERTYPE_IP, pa, ha);
 				//free(entry->data);
@@ -145,12 +149,13 @@ int arp_resolve(struct ether_port *port, const uint32_t *pa, ethernet_addr *ha, 
 			pthread_mutex_unlock(&arp_table.mutex);
 			return -1;
 	}
-	entry->data = malloc(size);
-	if (!entry->data) {
-			pthread_mutex_unlock(&arp_table.mutex);
-			return -1;
-	}
-	memcpy(entry->data, data, size);
+	//entry->data = malloc(size);
+	//if (!entry->data) {
+	//		pthread_mutex_unlock(&arp_table.mutex);
+	//		return -1;
+	//}
+	//memcpy(entry->data, data, size);
+	entry->data = data;
 	entry->port = port;
 	entry->size = size;
 	arp_table.table.pool = entry->next;
