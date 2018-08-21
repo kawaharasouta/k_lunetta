@@ -9,6 +9,8 @@
 #define IP_INTERFACE_NUM 1
 #define ROUTE_TABLE_SIZE 3
 
+const uint32_t ip_broadcast = 0xffffffff;
+
 uint32_t get_ip_addr(struct ether_port *port) {
 	return 0x0a000005;
 }
@@ -124,3 +126,30 @@ ip_init(struct ip_init_info *info, uint16_t num, struct ether_port *gate_port, u
 	return 0;
 }
 
+void
+tx_ip_core(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32_t nexthop, struct ether_port *port) {
+	
+}
+
+void 
+tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest) {
+	uint32_t nexthop = 0;
+	struct ip_interface *ifs;
+	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM; 
+
+	if (dest == ip_broadcast) {
+		//all port
+		for (ifs = interfaces; ifs != fin; ifs++) {
+			tx_ip_core(proto, mbuf, size, dest, 0, ifs->port);
+		}
+	}
+	else {
+
+	}
+//	for (ifs = interfaces; ifs != fin; ifs++) {
+//		if (dest != ifs->broadcast) {
+//			
+//		}
+//	}
+	//if (dest != )
+}
