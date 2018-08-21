@@ -34,12 +34,11 @@ struct route_node route_table[ROUTE_TABLE_SIZE];
 
 
 void 
-ip_interfaces_init(struct ether_port *port, uint16_t num) {
+ip_interfaces_init(struct ether_port /* * */*port, uint16_t num) {
 	if (num > IP_INTERFACE_NUM) {
 		fprintf(stderr, "ip_interfaces_init error\n");
 		exit(1);
 	}
-
 	//now one loop
 	for (int i = 0; i < num; i++) {
 		interfaces[i].port = port;
@@ -84,8 +83,11 @@ route_table_add(const uint32_t addr, const uint32_t mask, const uint32_t next, s
 }
 
 int
-ip_init(const uint32_t addr, const uint32_t mask, const uint32_t gateway) {
-
+ip_init(struct ether_port /* * */*port, uint16_t num) {
+	ip_interfaces_init(port, num);
+	//if (route_table_add(0x0a000005, 0xffffff00, 0x00000000, loopback ether_port))
+	//default gateway ?
+	return 0;
 }
 
 
