@@ -65,28 +65,27 @@ route_table_init() {
 	return;
 }
 
-//int route_table_add(const uint32_t addr, const uint32_t mask, const uint32_t next) {
-//	struct route_node *route
-//	struct route_node *fin = ip.route_table +  ROUTE_TABLE_SIZE;
-//
-//	for (route = ip.route_table; route != fin; route++) {
-//		if (!route->used) {
-//			route->used = 1;
-//			route->addr = addr;
-//			route->mask = mask;
-//			route->next = next;
-//			return 0;
-//		}
-//	}
-//	return -1;
-//}
-//
-//int
-//ip_init(const uint32_t addr, const uint32_t mask, const uint32_t gateway) {
-//
-//	ip.addr = addr;
-//	ip.mask = mask;
-//	ip.network = addr & mask;
-//}
+int 
+route_table_add(const uint32_t addr, const uint32_t mask, const uint32_t next, struct ether_port *port) {
+	struct route_node *route;
+	struct route_node *fin = route_table +  ROUTE_TABLE_SIZE;
+
+	for (route = route_table; route != fin; route++) {
+		if (!route->used) {
+			route->used = 1;
+			route->port = port;
+			route->addr = addr;
+			route->mask = mask;
+			route->next = next;
+			return 0;
+		}
+	}
+	return -1;
+}
+
+int
+ip_init(const uint32_t addr, const uint32_t mask, const uint32_t gateway) {
+
+}
 
 
