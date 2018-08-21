@@ -26,6 +26,12 @@ struct ip_hdr{
 	uint32_t dest_addr;
 };
 
+struct ip_init_info {
+	struct ether_port *port;
+	uint32_t addr;
+	uint32_t mask;
+};
+
 
 void print_ip_hdr(struct ip_hdr *ip_hdr);
 void rx_ip(uint8_t *packet, uint32_t size, struct port_config *port);

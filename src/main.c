@@ -16,6 +16,7 @@
 #include"include/pkt_io.h"
 #include"include/ethernet.h"
 #include"include/arp.h"
+#include"include/ip.h"
 
 
 int 
@@ -30,7 +31,12 @@ main(void) {
 	port_init(&port);
 	ethernet_init(&port, 1);
 	arp_init(&port);
-	ip_init(get_port_pointer(), 1);
+	//ip_init(get_port_pointer(), 1);
+	struct ip_init_info ip_info;
+	ip_info.port = get_port_pointer();
+	ip_info.addr = 0x0a000005;
+	ip_info.mask = 0xffffff00;
+	ip_init(&ip_info, 1, ip_info.port, NULL);
 	int ret;
 	int rx_pop_num;
 
