@@ -3,6 +3,7 @@
 #include<string.h>
 #include<stdint.h>
 
+#include"include/ip.h"
 #include"include/ethernet.h"
 
 #define ROUTE_TABLE_SIZE 2;
