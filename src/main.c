@@ -30,6 +30,7 @@ main(void) {
 	port_init(&port);
 	ethernet_init(&port, 1);
 	arp_init(&port);
+	ip_interfaces_init(get_port_pointer(), 1);
 	int ret;
 	int rx_pop_num;
 
