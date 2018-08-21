@@ -257,7 +257,7 @@ void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint3
 			send_rep(/*&hdr->s_ip_addr*/port, &hdr->s_ip_addr, &hdr->s_eth_addr);
 	}
 
-	arp_table_dump();
+	//arp_table_dump();
 
 	return;
 }

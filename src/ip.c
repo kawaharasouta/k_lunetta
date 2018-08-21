@@ -7,7 +7,7 @@
 #include"include/ethernet.h"
 
 #define IP_INTERFACE_NUM 1
-#define ROUTE_TABLE_SIZE 2//for instance
+#define ROUTE_TABLE_SIZE 3
 
 uint32_t get_ip_addr(struct ether_port *port) {
 	return 0x0a000005;
@@ -19,7 +19,6 @@ struct ip_interface {//one interface
 	uint32_t mask;
 	uint32_t network;
 	uint32_t broadcast;
-	//struct route_node route_table[ROUTE_TABLE_SIZE];
 };
 struct ip_interface interfaces[IP_INTERFACE_NUM];
 
@@ -32,22 +31,36 @@ struct route_node {
 };
 struct route_node route_table[ROUTE_TABLE_SIZE];
 
+void ip_interfaces_dump() {
+	struct ip_interface *ifs;
+	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
 
-void 
-ip_interfaces_init(struct ether_port /* * */*port, uint16_t num) {
-	if (num > IP_INTERFACE_NUM) {
-		fprintf(stderr, "ip_interfaces_init error\n");
-		exit(1);
+	printf("===== ip_interfaces =====\n");
+	for (ifs = interfaces; ifs != fin; ifs++) {
+		printf("--------------------------\n");
+		printf("port: %p(pointer)\n", ifs->port);
+		printf("addr: %x\n", ifs->addr);
+		printf("mask: %x\n", ifs->mask);
+		printf("network: %x\n", ifs->network);
+		printf("broadcast: %x\n", ifs->broadcast);
 	}
-	//now one loop
-	for (int i = 0; i < num; i++) {
-		interfaces[i].port = port;
-		interfaces[i].addr = 0x0a000005;
-		interfaces[i].mask = 0xffffff00;
-		interfaces[i].network = 0x0a000000;
-		interfaces[i].broadcast = 0x0a0000ff;
+	printf("=========================\n");
+}
+
+void route_table_dump() {
+	struct route_node *node	;
+	struct route_node *fin = route_table + ROUTE_TABLE_SIZE;
+	
+	printf("===== ip_route_table =====\n");
+	for (node = route_table; node != fin; node++) {
+		printf("----------------------------\n");
+		printf("used: %u\n", node->used);
+		printf("port: %p(pointer)\n", node->port);
+		printf("network: %x\n", node->network);
+		printf("mask: %x\n", node->mask);
+		printf("next: %x\n", node->next);
 	}
-	return;
+	printf("==========================\n");
 }
 
 void 
@@ -84,9 +97,9 @@ route_table_add(const uint32_t network, const uint32_t mask, const uint32_t next
 
 int
 ip_init(struct ip_init_info *info, uint16_t num, struct ether_port *gate_port, uint32_t gateway) {
-	//ip_interfaces_init(port, num);
-	//if (route_table_add(0x0a000005, 0xffffff00, 0x00000000, loopback ether_port))
 	struct ip_interface *ifs = interfaces;
+
+	route_table_init();
 
 	if (num > IP_INTERFACE_NUM)
 		num = IP_INTERFACE_NUM;

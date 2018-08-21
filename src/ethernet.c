@@ -128,9 +128,9 @@ tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t
 		len = ETHER_FRAME_MIN_LEN;
 	}
 
-	printf("***** tx_ether *****\n");
-	hexdump(ppp, len);
-	printf("********************\n");
+//	printf("***** tx_ether *****\n");
+//	hexdump(ppp, len);
+//	printf("********************\n");
 
 	/********/
 	mbuf->pkt_len = len;
@@ -155,9 +155,9 @@ rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t
 	pp += sizeof(struct ethernet_hdr);
 	size -= sizeof(struct ethernet_hdr);
 
-	print_ethernet_hdr(packet);
-	printf("port mac addr:");
-	print_mac_addr(&port->mac_addr);
+//	print_ethernet_hdr(packet);
+//	printf("port mac addr:");
+//	print_mac_addr(&port->mac_addr);
 	
 	if (is_equal_mac_addr(&port->mac_addr, &packet->dest) || is_ether_broadcast(&packet->dest)) {
 		switch (ntohs(packet->type)) {

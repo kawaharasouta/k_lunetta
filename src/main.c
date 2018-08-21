@@ -36,7 +36,10 @@ main(void) {
 	ip_info.port = get_port_pointer();
 	ip_info.addr = 0x0a000005;
 	ip_info.mask = 0xffffff00;
-	ip_init(&ip_info, 1, ip_info.port, NULL);
+	ip_init(&ip_info, 1, ip_info.port, 0x0a000001);
+	ip_interfaces_dump();
+	route_table_dump();
+
 	int ret;
 	int rx_pop_num;
 
