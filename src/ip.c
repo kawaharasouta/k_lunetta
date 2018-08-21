@@ -6,6 +6,7 @@
 #include"include/ip.h"
 #include"include/ethernet.h"
 
+#define IP_INTERFACE_NUM 1;
 #define ROUTE_TABLE_SIZE 2;
 
 uint32_t get_ip_addr(struct ether_port *port) {
@@ -30,9 +31,11 @@ struct ip {//one interface
 	//struct route_node route_table[ROUTE_TABLE_SIZE];
 };
 
+struct ip interfaces[IP_INTERFACE_NUM];
+
 struct route_node {
 	uint8_t used;
-	struct ip interface;
+	struct ip *interface;
 	uint32_t addr;
 	uint32_t mask;
 	uint32_t next;
