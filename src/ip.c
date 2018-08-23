@@ -15,6 +15,10 @@
 
 #define IP_HEADER_LEN 20
 
+#define IP_PROTO_ICMP 1
+#define IP_PROTO_TCP 6
+#define IP_PROTO_UDP 17
+
 const uint32_t ip_broadcast = 0xffffffff;
 
 uint32_t get_ip_addr(struct ether_port *port) {
@@ -200,7 +204,7 @@ tx_ip_core(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, u
 	iphdr->check = checksum_s((uint16_t *)iphdr, IP_HEADER_LEN, 0);
 	if (*nexthop) {
 		*nexthop = htonl(*nexthop);
-		printf("nexthop: %x\n",*nexthop);
+		//printf("nexthop: %x\n",*nexthop);
 		tx_ether(ifs->port, mbuf, len, ETHERTYPE_IP, nexthop, NULL);
 	}
 	else {//broadcast
@@ -256,3 +260,88 @@ tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32
 	
 	return;
 }
+
+void 
+rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
+	struct ip_hdr *iphdr = data;
+	uint16_t hdr_len, total_len;
+	data += sizeof(struct ip_hdr);
+
+	if (size < sizeof(struct ip_hdr))
+		return;
+
+	hdr_len = iphdr->hdr_len << 2;
+	if (iphdr->version != 4) {
+		fprintf(stderr, "not ipv4\n");
+		return;
+	}
+	if(size < hdr_len) {
+		fprintf(stderr, "packet length error\n");
+		return;
+	}
+	if (checksum_s((uint16_t *)iphdr, hdr_len, 0) != 0) {
+		fprintf(stderr, "checksum error\n");
+		return;
+	}
+	
+	struct ip_interface *ifs = find_ip_interface_from_ether_port(port);
+	if (iphdr->dest_addr != ifs->addr) {//dest_addr
+		if (iphdr->dest_addr != ifs->broadcast && iphdr->dest_addr != ip_broadcast) {
+			return;
+		}
+	}
+
+	total_len = ntohs(iphdr->total_len) - iphdr->hdr_len;
+	printf("total_len: %d\n", total_len);
+	switch (iphdr->proto) {
+		case IP_PROTO_ICMP:
+		{
+			printf("*** ip proto icmp ***\n");
+			break;
+		}
+		case IP_PROTO_TCP:
+		{
+			printf("*** ip proto tcp ***\n");
+			break;
+		}
+		case IP_PROTO_UDP:
+		{
+			printf("*** ip proto udp ***\n");
+			break;
+		}
+		default:
+		{
+			printf("*** no ip proto ***\n");
+			break;
+		}
+	}
+	return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

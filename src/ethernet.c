@@ -168,7 +168,7 @@ rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t
 			case ETHERTYPE_IP:
 			{
 				printf("ip\n");
-				//rx_ip((uint8_t *)pp, pop_size, port);
+				rx_ip(port, mbuf, (uint8_t *)pp, size);
 				break;
 			}
 			case ETHERTYPE_ARP:

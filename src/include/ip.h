@@ -35,9 +35,13 @@ struct ip_init_info {
 };
 
 
-void print_ip_hdr(struct ip_hdr *ip_hdr);
-void rx_ip(uint8_t *packet, uint32_t size, struct port_config *port);
-
-uint32_t get_ip_addr(struct ether_port *port);
+void 
+print_ip_hdr(struct ip_hdr *ip_hdr);
+void 
+tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32_t src);
+void 
+rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size);
+uint32_t 
+get_ip_addr(struct ether_port *port);
 
 #endif
