@@ -21,9 +21,6 @@
 
 const uint32_t ip_broadcast = 0xffffffff;
 
-uint32_t get_ip_addr(struct ether_port *port) {
-	return 0x0a000005;
-}
 
 struct ip_interface {//one interface
 	struct ether_port *port;
@@ -145,6 +142,11 @@ find_ip_interface_from_ether_port(struct ether_port *port) {
 			return ifs;
 	}
 	return NULL;
+}
+
+uint32_t get_ip_addr(struct ether_port *port) {
+	struct ip_interface *ifs = find_ip_interface_from_ether_port(port);
+	return ifs->addr;
 }
 
 int

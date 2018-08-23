@@ -34,7 +34,7 @@ main(void) {
 	//ip_init(get_port_pointer(), 1);
 	struct ip_init_info ip_info;
 	ip_info.port = get_port_pointer();
-	ip_info.addr = 0x0a000005;
+	ip_info.addr = 0x0a000006;
 	ip_info.mask = 0xffffff00;
 	ip_init(&ip_info, 1, ip_info.port, 0x0a000001);
 	ip_interfaces_dump();
@@ -51,7 +51,7 @@ main(void) {
 	while (1) {
 		sleep(3);
 		uint32_t tpa_ip = 0x0a000003;
-		uint32_t tpa = 0x0300000a;
+		//uint32_t tpa = 0x0300000a;
 
 		//printf("***\n");
 		struct rte_mbuf *mbuf;
