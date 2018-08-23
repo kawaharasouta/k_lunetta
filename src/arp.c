@@ -72,7 +72,7 @@ int arp_table_select(const uint32_t *pa, ethernet_addr *ha) {
 	struct arp_entry *entry;
 	for (entry = arp_table.table.head; entry; entry = entry->next) {
 		if (!entry) printf("!entry\n");
-		if (entry->pa == *pa) {
+		if ((entry->pa == *pa)/* && !is_zero_ethernet_addr(&entry->ha)*/) {
 			memcpy(ha, &entry->ha, sizeof(ethernet_addr));
 			return 0;
 		}

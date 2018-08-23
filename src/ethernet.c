@@ -48,6 +48,15 @@ find_port_pointer(uint16_t port_num) {
 	}
 }
 
+int 
+is_zero_ethernet_addr(ethernet_addr *addr) {
+	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
+		if (addr->addr[i] != 0)
+			return 0;
+	}
+	return 1;
+}
+
 void 
 print_mac_addr(ethernet_addr *addr) {
 	printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -108,6 +117,13 @@ tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t
 		//}
 		if (ret != 1)
 			return;
+
+		//before receiving arp reply. resend arp_req. do not consider data loss.
+		if (is_zero_ethernet_addr(&haddr)) {
+			send_req(port, paddr);
+			return;
+		}
+			
 	}
 	else {
 		for (int i = 0; i < ETHER_ADDR_LEN; i++) {

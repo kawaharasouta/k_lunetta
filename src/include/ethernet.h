@@ -31,6 +31,8 @@ extern ethernet_addr ether_broadcast;
 
 struct ether_port*
 get_port_pointer();
+int 
+is_zero_ethernet_addr(ethernet_addr *addr);
 
 int 
 ethernet_init(struct port_config *port, uint16_t num);
