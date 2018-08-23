@@ -5,6 +5,8 @@
 
 #include<stdint.h>
 
+extern struct ether_port;
+
 struct ip_hdr{
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 	unsigned int hdr_len:4;
@@ -36,7 +38,6 @@ struct ip_init_info {
 void print_ip_hdr(struct ip_hdr *ip_hdr);
 void rx_ip(uint8_t *packet, uint32_t size, struct port_config *port);
 
-extern struct ether_port;
 uint32_t get_ip_addr(struct ether_port *port);
 
 #endif

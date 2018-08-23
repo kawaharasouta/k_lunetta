@@ -2,12 +2,18 @@
 #include<stdlib.h>
 #include<string.h>
 #include<stdint.h>
+#include<pthread.h>
+
+#include<rte_mbuf.h>
 
 #include"include/ip.h"
 #include"include/ethernet.h"
+#include"include/lunetta.h"
 
 #define IP_INTERFACE_NUM 1
 #define ROUTE_TABLE_SIZE 3
+
+#define IP_HEADER_LEN 20
 
 const uint32_t ip_broadcast = 0xffffffff;
 
@@ -126,30 +132,101 @@ ip_init(struct ip_init_info *info, uint16_t num, struct ether_port *gate_port, u
 	return 0;
 }
 
+int
+ip_route_lookup(uint32_t dest, uint32_t *nexthop, struct ip_interface **ifs) {
+	printf("ip_route_lookup no naka\n");
+	*ifs = interfaces;
+	return 0;
+}
+
+static uint16_t 
+ip_generate_id(void) {
+	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+	static uint16_t id = 0;
+	uint16_t ret;
+
+	pthread_mutex_lock(&mutex);
+	ret = id++;
+	pthread_mutex_unlock(&mutex);
+	return ret;
+}
+
 void
-tx_ip_core(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32_t nexthop, struct ether_port *port) {
-	
+tx_ip_core(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32_t *nexthop, struct ip_interface *ifs) {
+	if (size > 1480 || !mbuf || !ifs) {
+		fprintf(stderr, "tx_ip_core error\n");
+		exit(1);
+	}
+	uint32_t len = size + IP_HEADER_LEN;
+
+	//not suport option.
+	struct ip_hdr *iphdr = (uint8_t *)rte_pktmbuf_prepend(mbuf, sizeof(uint8_t) * IP_HEADER_LEN);
+	iphdr->hdr_len = IP_HEADER_LEN >> 2;
+	iphdr->version = 4;
+	iphdr->type_of_service = 0;
+	iphdr->total_len = htons(len);
+	iphdr->id = ip_generate_id();
+	iphdr->frag = 0;
+	iphdr->ttl = 0xff;
+	iphdr->proto = proto;
+	iphdr->check = 0; 
+	iphdr->src_addr = htonl(ifs->addr);
+	iphdr->dest_addr = htonl(dest);
+	iphdr->check = checksum_s((uint16_t *)iphdr, IP_HEADER_LEN, 0);
+	if (*nexthop) {
+		tx_ether(ifs->port, mbuf, len, ETHERTYPE_IP, nexthop, NULL);
+	}
+	else {//broadcast
+		tx_ether(ifs->port, mbuf, len, ETHERTYPE_IP, NULL, &ether_broadcast);
+	}
+	return;
+}
+
+struct ip_interface*
+match_directed_broadcast(uint32_t dest) {
+	struct ip_interface *ifs;
+	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
+	for (ifs = interfaces; ifs != fin; ifs++) {
+		if (dest == ifs->broadcast) {
+			return ifs;
+		}
+	}
+	return NULL;
 }
 
 void 
-tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest) {
+tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32_t src) {
 	uint32_t nexthop = 0;
 	struct ip_interface *ifs;
-	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM; 
+	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
+	printf("*** tx_ip ***\n");
 
 	if (dest == ip_broadcast) {
-		//all port
+		printf("limited broadcast\n");
+		//lookup src addr
 		for (ifs = interfaces; ifs != fin; ifs++) {
-			tx_ip_core(proto, mbuf, size, dest, 0, ifs->port);
+			if (src == ifs->addr) {
+				//tx_ip_core(proto, mbuf, size, dest, 0, ifs->port);
+				break;
+			}
+			ifs = NULL;
 		}
 	}
-	else {
-
+	else if ((ifs = match_directed_broadcast(dest)) == NULL) {
+		printf("route_lookup\n");
+		if (ip_route_lookup(dest, &nexthop, &ifs) == -1) {
+			fprintf(stderr, "no route\n");
+			exit(1);/*****/
+		}
+		if (!nexthop) {//same network. nexthop is dest. (now that is set 0.)
+			nexthop = dest;
+		}
 	}
-//	for (ifs = interfaces; ifs != fin; ifs++) {
-//		if (dest != ifs->broadcast) {
-//			
-//		}
-//	}
-	//if (dest != )
+	if (!ifs) {
+		fprintf(stderr, "ip interface is not found\n");
+		exit(1);
+	}
+	tx_ip_core(proto, mbuf, size, dest, &nexthop, ifs);
+	
+	return;
 }

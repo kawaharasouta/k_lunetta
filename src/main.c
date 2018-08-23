@@ -48,15 +48,16 @@ main(void) {
 //	rte_eal_wait_lcore(1);
 //	launch_lcore_rx(ether_port);
 	while (1) {
-		uint32_t tpa = 0x0300000a;
+		uint32_t tpa = 0x0a000003;
 
 		//printf("***\n");
-		//struct rte_mbuf *mbuf;
-		//mbuf = rte_pktmbuf_alloc(mbuf_pool);
+		struct rte_mbuf *mbuf;
+		mbuf = rte_pktmbuf_alloc(mbuf_pool);
 		//uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
 		//tx_ether(ether_port, mbuf, 0, ETHERTYPE_IP, &tpa, NULL);
 		sleep(3);
-		send_req(ether_port, &tpa);
+		tx_ip(6, mbuf, 0, tpa, ip_info.addr);
+		//send_req(ether_port, &tpa);
 	}
 	rte_eal_wait_lcore(1);
 
