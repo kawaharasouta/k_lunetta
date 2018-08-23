@@ -132,9 +132,35 @@ ip_init(struct ip_init_info *info, uint16_t num, struct ether_port *gate_port, u
 	return 0;
 }
 
+struct ip_interface*
+find_ip_interface_from_ether_port(struct ether_port *port) {
+	struct ip_interface *ifs;
+	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
+	for (ifs = interfaces; ifs != fin; ifs++) {
+		if (ifs->port == port)
+			return ifs;
+	}
+	return NULL;
+}
+
 int
 ip_route_lookup(uint32_t dest, uint32_t *nexthop, struct ip_interface **ifs) {
-	*ifs = interfaces;
+	//*ifs = interfaces;
+	struct route_node *route, *ret = NULL;
+	struct route_node *fin = route_table + ROUTE_TABLE_SIZE;
+	for (route = route_table; route != fin; route++) {
+		if (route->used && (dest & route->mask) == route->network) {//same network
+			if (!ret || ntohl(ret->mask) < ntohl(route->mask)) {//longest match
+				ret = route;
+			}
+		}
+	}
+	if (!ret) {
+		return -1;
+	}
+	*nexthop = ret->next;
+	*ifs = find_ip_interface_from_ether_port(ret->port);
+
 	return 0;
 }
 
