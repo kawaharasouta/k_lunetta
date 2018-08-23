@@ -134,7 +134,6 @@ ip_init(struct ip_init_info *info, uint16_t num, struct ether_port *gate_port, u
 
 int
 ip_route_lookup(uint32_t dest, uint32_t *nexthop, struct ip_interface **ifs) {
-	printf("ip_route_lookup no naka\n");
 	*ifs = interfaces;
 	return 0;
 }
@@ -174,6 +173,8 @@ tx_ip_core(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, u
 	iphdr->dest_addr = htonl(dest);
 	iphdr->check = checksum_s((uint16_t *)iphdr, IP_HEADER_LEN, 0);
 	if (*nexthop) {
+		*nexthop = htonl(*nexthop);
+		printf("nexthop: %x\n",*nexthop);
 		tx_ether(ifs->port, mbuf, len, ETHERTYPE_IP, nexthop, NULL);
 	}
 	else {//broadcast
@@ -213,7 +214,6 @@ tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32
 		}
 	}
 	else if ((ifs = match_directed_broadcast(dest)) == NULL) {
-		printf("route_lookup\n");
 		if (ip_route_lookup(dest, &nexthop, &ifs) == -1) {
 			fprintf(stderr, "no route\n");
 			exit(1);/*****/

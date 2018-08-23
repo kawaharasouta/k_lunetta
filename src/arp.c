@@ -82,7 +82,9 @@ int arp_table_select(const uint32_t *pa, ethernet_addr *ha) {
 
 int arp_table_renew(const uint32_t *pa, const ethernet_addr *ha, struct ether_port *port) {
 	struct arp_entry *entry;
+	printf("arp_table_renew\n");
 
+	pthread_mutex_lock(&arp_table.mutex);
 	for (entry = arp_table.table.head; entry; entry = entry->next) {
 		if (entry->pa == *pa) {
 			memcpy(&entry->ha, ha, sizeof(ethernet_addr));
@@ -99,15 +101,20 @@ int arp_table_renew(const uint32_t *pa, const ethernet_addr *ha, struct ether_po
 				//rte_memcpy(p, entry->data, entry->size);
 				mbuf = (struct rte_mbuf *)entry->data;
 
-			
-				tx_ether(port, mbuf, entry->size, ETHERTYPE_IP, pa, ha);
 				//free(entry->data);
 				entry->data = NULL;
 				entry->size = 0;
+				
+				pthread_mutex_unlock(&arp_table.mutex);
+				tx_ether(port, mbuf, entry->size, ETHERTYPE_IP, pa, ha);
 			}
+			pthread_mutex_unlock(&arp_table.mutex);
+			printf("arp_table_renew return 1\n");
 			return 1;
 		}
 	}
+	pthread_mutex_unlock(&arp_table.mutex);
+	printf("arp_table_renew return 0\n");
 	return 0;
 }
 
@@ -163,14 +170,17 @@ int arp_resolve(struct ether_port *port, const uint32_t *pa, ethernet_addr *ha, 
 	arp_table.table.head = entry;
 	entry->pa = *pa;
 	time(&entry->timestamp);
-	send_req(port, pa);
 	pthread_mutex_unlock(&arp_table.mutex);
+	send_req(port, pa);
+	arp_table_dump();
 	return	0;
 }
 
 void send_req(struct ether_port *port, const uint32_t *tpa) {
 	struct rte_mbuf *mbuf;
 	mbuf = rte_pktmbuf_alloc(mbuf_pool);
+
+	printf("arp send_req\n");
 
 	struct arp_ether *request;
 	uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
@@ -200,6 +210,8 @@ void send_req(struct ether_port *port, const uint32_t *tpa) {
 void send_rep(struct ether_port *port, const uint32_t *tpa, const ethernet_addr *tha) {
 	struct rte_mbuf *mbuf;
 	mbuf = rte_pktmbuf_alloc(mbuf_pool);
+
+	printf("arp send_rep\n");
 
 	struct arp_ether *rep;
 	uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
@@ -239,9 +251,9 @@ void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint3
 	if (ntohs(hdr->arphdr.proto_type) != ETHERTYPE_IP) return;
 	if (hdr->arphdr.hrd_len != ETHER_ADDR_LEN) return;
 	if (hdr->arphdr.proto_len != IP_ADDR_LEN) return;
-	pthread_mutex_lock(&arp_table.mutex);
+	//pthread_mutex_lock(&arp_table.mutex);
 	merge_flag = arp_table_renew(&hdr->s_ip_addr, &hdr->s_eth_addr, port);
-	pthread_mutex_unlock(&arp_table.mutex);
+	//pthread_mutex_unlock(&arp_table.mutex);
 
 	uint32_t addr = get_ip_addr(port);
 	printf("s_ip_addr: %x\n", ntohl(hdr->s_ip_addr));
@@ -257,7 +269,7 @@ void rx_arp(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint3
 			send_rep(/*&hdr->s_ip_addr*/port, &hdr->s_ip_addr, &hdr->s_eth_addr);
 	}
 
-	//arp_table_dump();
+	arp_table_dump();
 
 	return;
 }

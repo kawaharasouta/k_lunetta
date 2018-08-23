@@ -125,6 +125,7 @@ rx_pkt (struct ether_port *port) {
 	/* Recv burst of RX packets */
 	nb_rx = rte_eth_rx_burst(nport, 0, bufs, BURST_SIZE);
 	for (int i = 0; i < nb_rx ; i++) {
+		printf("*** rx_pkt ***\n");
 #ifndef DEBUG_PKT_IO
 		uint8_t *p = rte_pktmbuf_mtod(bufs[i], uint8_t*);
 		uint32_t size = rte_pktmbuf_pkt_len(bufs[i]);
