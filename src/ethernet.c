@@ -123,7 +123,6 @@ tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t
 			send_req(port, paddr);
 			return;
 		}
-			
 	}
 	else {
 		for (int i = 0; i < ETHER_ADDR_LEN; i++) {

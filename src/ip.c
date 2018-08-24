@@ -269,10 +269,13 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 	uint16_t hdr_len, total_len;
 	data += sizeof(struct ip_hdr);
 
+	printf("*** rx_ip ***\n");
+
 	if (size < sizeof(struct ip_hdr))
 		return;
 
 	hdr_len = iphdr->hdr_len << 2;
+	printf("hdr_len: %d\n", hdr_len);
 	if (iphdr->version != 4) {
 		fprintf(stderr, "not ipv4\n");
 		return;
@@ -287,7 +290,7 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 	}
 	
 	struct ip_interface *ifs = find_ip_interface_from_ether_port(port);
-	if (iphdr->dest_addr != ifs->addr) {//dest_addr
+	if (ntohl(iphdr->dest_addr) != ifs->addr) {//dest_addr
 		if (iphdr->dest_addr != ifs->broadcast && iphdr->dest_addr != ip_broadcast) {
 			return;
 		}
@@ -299,6 +302,7 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 		case IP_PROTO_ICMP:
 		{
 			printf("*** ip proto icmp ***\n");
+			rx_icmp(mbuf, data, total_len, ntohl(iphdr->src_addr), ntohl(iphdr->dest_addr));
 			break;
 		}
 		case IP_PROTO_TCP:
