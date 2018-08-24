@@ -15,9 +15,9 @@
 
 #define IP_HEADER_LEN 20
 
-#define IP_PROTO_ICMP 1
-#define IP_PROTO_TCP 6
-#define IP_PROTO_UDP 17
+//#define IP_PROTO_ICMP 1
+//#define IP_PROTO_TCP 6
+//#define IP_PROTO_UDP 17
 
 const uint32_t ip_broadcast = 0xffffffff;
 
@@ -268,6 +268,7 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 	struct ip_hdr *iphdr = data;
 	uint16_t hdr_len, total_len;
 	data += sizeof(struct ip_hdr);
+	size -= sizeof(struct ip_hdr);
 
 	printf("*** rx_ip ***\n");
 
@@ -296,13 +297,13 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 		}
 	}
 
-	total_len = ntohs(iphdr->total_len) - iphdr->hdr_len;
-	printf("total_len: %d\n", total_len);
+	//total_len = ntohs(iphdr->total_len) - iphdr->hdr_len;
+	//printf("total_len: %d\n", total_len);
 	switch (iphdr->proto) {
 		case IP_PROTO_ICMP:
 		{
 			printf("*** ip proto icmp ***\n");
-			rx_icmp(mbuf, data, total_len, ntohl(iphdr->src_addr), ntohl(iphdr->dest_addr));
+			rx_icmp(mbuf, data, size, ntohl(iphdr->src_addr), ntohl(iphdr->dest_addr));
 			break;
 		}
 		case IP_PROTO_TCP:

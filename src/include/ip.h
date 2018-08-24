@@ -5,6 +5,10 @@
 
 #include<stdint.h>
 
+#define IP_PROTO_ICMP 1
+#define IP_PROTO_TCP 6
+#define IP_PROTO_UDP 17
+
 extern struct ether_port;
 
 struct ip_hdr{

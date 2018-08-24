@@ -10,7 +10,7 @@ struct icmp_hdr_head {
 struct icmp_hdr_echo {
 	struct icmp_hdr_head head;
 	uint16_t id;
-	uint16_t seqence;
+	uint16_t sequence;
 };
 
 struct icmp_hdr_redirect {
