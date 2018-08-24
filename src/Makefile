@@ -50,7 +50,8 @@ else
   SRCS-y := main.c lunetta.c pkt_io.c ethernet.c arp.c ip.c icmp.c
 endif
 
-CFLAGS += -g -lpthread
+CFLAGS += -g -lpthread 
+#CFLAGS += -Wl,-stack,10485760
 #CFLAGS += $(WERROR_FLAGS)
 
 include $(RTE_SDK)/mk/rte.extapp.mk

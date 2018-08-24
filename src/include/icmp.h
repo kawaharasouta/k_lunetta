@@ -20,6 +20,6 @@ struct icmp_hdr_redirect {
 
 
 void
-rx_icmp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t *src, uint32_t *dest);
+rx_icmp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32_t dest);
 
 #endif 

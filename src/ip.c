@@ -232,10 +232,9 @@ tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32
 	uint32_t nexthop = 0;
 	struct ip_interface *ifs;
 	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
-	printf("*** tx_ip ***\n");
 
 	if (dest == ip_broadcast) {
-		printf("limited broadcast\n");
+		//printf("limited broadcast\n");
 		//lookup src addr
 		for (ifs = interfaces; ifs != fin; ifs++) {
 			if (src == ifs->addr) {
@@ -267,10 +266,6 @@ void
 rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
 	struct ip_hdr *iphdr = data;
 	uint16_t hdr_len, total_len;
-	data += sizeof(struct ip_hdr);
-	size -= sizeof(struct ip_hdr);
-
-	printf("*** rx_ip ***\n");
 
 	if (size < sizeof(struct ip_hdr))
 		return;
@@ -296,6 +291,9 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 			return;
 		}
 	}
+	
+	data += hdr_len;
+	size -= hdr_len;
 
 	//total_len = ntohs(iphdr->total_len) - iphdr->hdr_len;
 	//printf("total_len: %d\n", total_len);
@@ -324,31 +322,5 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 	}
 	return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

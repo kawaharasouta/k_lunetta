@@ -47,11 +47,13 @@ main(void) {
 	rte_eal_remote_launch(launch_lcore_rx, (void *)ether_port, 1);
 	sleep(5);
 //	rte_eal_wait_lcore(1);
-//	launch_lcore_rx(ether_port);
+//	while (1) {
+//		launch_lcore_rx(ether_port);
+//	}
 		uint32_t tpa_ip = 0x0a000003;
-		struct rte_mbuf *mbuf;
-		mbuf = rte_pktmbuf_alloc(mbuf_pool);
-		tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);
+		//struct rte_mbuf *mbuf;
+		//mbuf = rte_pktmbuf_alloc(mbuf_pool);
+		//tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);
 	while (1) {
 		sleep(3);
 		//uint32_t tpa = 0x0300000a;
@@ -59,6 +61,7 @@ main(void) {
 		//printf("***\n");
 		//uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
 		//tx_ether(ether_port, mbuf, 0, ETHERTYPE_IP, &tpa, NULL);
+		//tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);
 	}
 	rte_eal_wait_lcore(1);
 
