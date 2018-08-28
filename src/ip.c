@@ -134,7 +134,7 @@ ip_init(struct ip_init_info *info, uint16_t num, struct ether_port *gate_port, u
 }
 
 struct ip_interface*
-find_ip_interface_from_ether_port(struct ether_port *port) {
+get_ip_interface_from_ether_port(struct ether_port *port) {
 	struct ip_interface *ifs;
 	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
 	for (ifs = interfaces; ifs != fin; ifs++) {
@@ -144,8 +144,19 @@ find_ip_interface_from_ether_port(struct ether_port *port) {
 	return NULL;
 }
 
+struct ip_interface*
+get_ip_interface_from_addr(uint32_t addr) {
+	struct ip_interface *ifs;
+	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
+	for (ifs = interfaces; ifs != fin; ifs++) {
+		if (ifs->addr == addr)
+			return ifs;
+	}
+	return NULL;
+}
+
 uint32_t get_ip_addr(struct ether_port *port) {
-	struct ip_interface *ifs = find_ip_interface_from_ether_port(port);
+	struct ip_interface *ifs = get_ip_interface_from_ether_port(port);
 	return ifs->addr;
 }
 
@@ -165,7 +176,7 @@ ip_route_lookup(uint32_t dest, uint32_t *nexthop, struct ip_interface **ifs) {
 		return -1;
 	}
 	*nexthop = ret->next;
-	*ifs = find_ip_interface_from_ether_port(ret->port);
+	*ifs = get_ip_interface_from_ether_port(ret->port);
 
 	return 0;
 }
@@ -285,7 +296,7 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 		return;
 	}
 	
-	struct ip_interface *ifs = find_ip_interface_from_ether_port(port);
+	struct ip_interface *ifs = get_ip_interface_from_ether_port(port);
 	if (ntohl(iphdr->dest_addr) != ifs->addr) {//dest_addr
 		if (iphdr->dest_addr != ifs->broadcast && iphdr->dest_addr != ip_broadcast) {
 			return;
