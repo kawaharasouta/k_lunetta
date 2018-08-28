@@ -23,6 +23,7 @@ struct udp_table_entry {
 	struct ip_interface *ifs;
 	uint16_t port;
 	struct queue_info queue;
+	pthread_cond_t cond;
 };
 
 struct udp_table_info {
@@ -74,7 +75,6 @@ int
 lunetta_udp_bind(int soc, uint32_t addr, uint16_t port) {
 	struct udp_table_entry *entry;
 	struct ip_interface *ifs;
-
 	if (soc < 0 || soc >= UDP_TABLE_NUM || !udp.table[soc].used) {
 		return -1;
 	}
@@ -131,6 +131,7 @@ rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 		memcpy(queue_hdr + 1, udphdr + 1, size - sizeof(struct udp_hdr));
 
 		queue_push(&entry->queue, queue_data, size - sizeof(struct udp_hdr));
+		pthread_cond_signal(&entry->cond);
 
 		pthread_mutex_unlock(&udp.mutex);
 		return;
@@ -138,10 +139,33 @@ rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 	pthread_mutex_unlock(&udp.mutex);
 }
 
+size_t 
+udp_recv(int soc, uint8_t *buf, size_t size/*peer */) {
+	struct udp_table_entry *entry;
+	if (soc < 0 || soc >= UDP_TABLE_NUM || !udp.table[soc].used) {
+		return -1;
+	}
+	entry = &udp.table[soc];
+	pthread_mutex_lock(&udp.mutex);
+
+	struct queue_node *node;
+	while ((node = queue_pop(&entry->queue)) == NULL) {
+		pthread_cond_wait(&entry->cond, &udp.mutex);
+	}
+	pthread_mutex_unlock(&udp.mutex);
+
+	struct udp_queue_hdr *queue_hdr = node->data;
+	size_t len = size > queue_hdr->len ? queue_hdr->len : size;
+	memcpy(buf, queue_hdr + 1, len);
+	free(queue_hdr);
+	return len;
+}
+
 void udp_init() {
 	struct udp_table_entry *entry;
 	struct udp_table_entry *fin = udp.table + UDP_TABLE_NUM;
 	for (entry = udp.table; entry != fin; entry++) {
+		pthread_cond_init(&entry->cond, NULL);
 		queue_init(&entry->queue);
 	}
 	pthread_mutex_init(&udp.mutex, NULL);
