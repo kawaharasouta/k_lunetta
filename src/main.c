@@ -52,7 +52,7 @@ main(void) {
 	udp_cb_dump();
 	printf("\n");
 	printf("udp_bind\n");
-	lunetta_udp_bind(soc, ip_info.addr, 80);
+	lunetta_udp_bind(soc, /*ip_info.addr*/0, 80);
 	udp_cb_dump();
 	printf("\n");
 
@@ -75,7 +75,7 @@ main(void) {
 	while (1) {
 		sleep(3);
 		memset(buf, 0, 256);
-		size_t len = udp_recv(soc, buf, 256);
+		size_t len = udp_recvfrom(soc, buf, 256, NULL, NULL);
 		hexdump(buf, (int)len);
 		//uint32_t tpa = 0x0300000a;
 

@@ -20,7 +20,8 @@ void
 lunetta_udp_close();
 int 
 lunetta_udp_bind(int soc, uint32_t addr, uint16_t port);
-
+size_t 
+udp_recvfrom(int soc, uint8_t *buf, size_t size, uint32_t *addr, uint16_t *port);
 
 void 
 rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32_t dest, struct ip_interface *ifs);

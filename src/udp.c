@@ -79,7 +79,7 @@ lunetta_udp_bind(int soc, uint32_t addr, uint16_t port) {
 		return -1;
 	}
 	entry = &udp.table[soc];
-	if (addr) {
+	if (addr != 0) {
 		ifs = get_ip_interface_from_addr(addr);
 		if (!ifs) {
 			return -1;
@@ -117,30 +117,41 @@ rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 	struct udp_table_entry *fin = udp.table + UDP_TABLE_NUM;
 	pthread_mutex_lock(&udp.mutex);
 	for (entry = udp.table; entry != fin; entry++) {
-		if (entry->used && entry->ifs == ifs && entry->port == ntohs(udphdr->dest_port)) {//Implement INADDR_ANY later
+		if (entry->used && (!entry->ifs || entry->ifs == ifs) && entry->port == ntohs(udphdr->dest_port)) {//Implement INADDR_ANY later  ->  done?
 			queue_data = malloc(sizeof(struct udp_queue_hdr) + (size - sizeof(struct udp_hdr)));
 			if (!queue_data) {
 				pthread_mutex_unlock(&udp.mutex);
 				return;
 			}
+			queue_hdr = queue_data;
+			queue_hdr->addr = src;
+			queue_hdr->port = udphdr->src_port;
+			queue_hdr->len = size - sizeof(struct udp_hdr);
+			memcpy(queue_hdr + 1, udphdr + 1, size - sizeof(struct udp_hdr));
+
+			queue_push(&entry->queue, queue_data, size - sizeof(struct udp_hdr));
+			pthread_cond_signal(&entry->cond);
+
+			pthread_mutex_unlock(&udp.mutex);
+			return;
 		}
-		queue_hdr = queue_data;
-		queue_hdr->addr = src;
-		queue_hdr->port = udphdr->src_port;
-		queue_hdr->len = size - sizeof(struct udp_hdr);
-		memcpy(queue_hdr + 1, udphdr + 1, size - sizeof(struct udp_hdr));
+		//queue_hdr = queue_data;
+		//queue_hdr->addr = src;
+		//queue_hdr->port = udphdr->src_port;
+		//queue_hdr->len = size - sizeof(struct udp_hdr);
+		//memcpy(queue_hdr + 1, udphdr + 1, size - sizeof(struct udp_hdr));
 
-		queue_push(&entry->queue, queue_data, size - sizeof(struct udp_hdr));
-		pthread_cond_signal(&entry->cond);
+		//queue_push(&entry->queue, queue_data, size - sizeof(struct udp_hdr));
+		//pthread_cond_signal(&entry->cond);
 
-		pthread_mutex_unlock(&udp.mutex);
-		return;
+		//pthread_mutex_unlock(&udp.mutex);
+		//return;
 	}
 	pthread_mutex_unlock(&udp.mutex);
 }
 
 size_t 
-udp_recv(int soc, uint8_t *buf, size_t size/*peer */) {
+udp_recvfrom(int soc, uint8_t *buf, size_t size, uint32_t *addr, uint16_t *port) {
 	struct udp_table_entry *entry;
 	if (soc < 0 || soc >= UDP_TABLE_NUM || !udp.table[soc].used) {
 		return -1;
@@ -155,6 +166,8 @@ udp_recv(int soc, uint8_t *buf, size_t size/*peer */) {
 	pthread_mutex_unlock(&udp.mutex);
 
 	struct udp_queue_hdr *queue_hdr = node->data;
+	if (addr) *addr = queue_hdr->addr;
+	if (port) *port = queue_hdr->port;
 	size_t len = size > queue_hdr->len ? queue_hdr->len : size;
 	memcpy(buf, queue_hdr + 1, len);
 	free(queue_hdr);
