@@ -1,11 +1,30 @@
 #ifndef __UDP_H_
 #define __UDP_H_
 
+#include<rte_mbuf.h>
+
+extern struct ip_interface;
+
 struct udp_hdr {
 	uint16_t src_port;
 	uint16_t dest_port;
 	uint16_t len;
 	uint16_t check;
 };
+
+void udp_cb_dump();
+
+int 
+lunetta_udp_soc();
+void 
+lunetta_udp_close();
+int 
+lunetta_udp_bind(int soc, uint32_t addr, uint16_t port);
+
+
+void 
+rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32_t dest, struct ip_interface *ifs);
+void 
+udp_init();
 
 #endif

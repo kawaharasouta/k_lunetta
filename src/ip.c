@@ -8,6 +8,7 @@
 
 #include"include/ip.h"
 #include"include/ethernet.h"
+#include"include/udp.h"
 #include"include/lunetta.h"
 
 #define IP_INTERFACE_NUM 1
@@ -323,6 +324,7 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 		case IP_PROTO_UDP:
 		{
 			printf("*** ip proto udp ***\n");
+			rx_udp(mbuf, data, size, ntohl(iphdr->src_addr), ntohl(iphdr->dest_addr), ifs);
 			break;
 		}
 		default:

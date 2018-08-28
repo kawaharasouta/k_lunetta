@@ -40,6 +40,20 @@ main(void) {
 	ip_interfaces_dump();
 	route_table_dump();
 
+	printf("udp_init\n");
+	udp_init();
+	udp_cb_dump();
+	printf("\n");
+	printf("udp_soc\n");
+	int soc = lunetta_udp_soc();
+	udp_cb_dump();
+	printf("\n");
+	printf("udp_bind\n");
+	lunetta_udp_bind(soc, ip_info.addr, 80);
+	udp_cb_dump();
+	printf("\n");
+
+
 	int ret;
 	int rx_pop_num;
 

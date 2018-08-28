@@ -48,7 +48,7 @@ void
 rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size);
 uint32_t 
 get_ip_addr(struct ether_port *port);
-struct ipinterface*
-get_ip_interface_from_addr(uint32_t addr)
+struct ip_interface*
+get_ip_interface_from_addr(uint32_t addr);
 
 #endif
