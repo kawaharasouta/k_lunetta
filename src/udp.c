@@ -10,6 +10,7 @@
 #include"include/udp.h"
 #include"include/ip.h"
 #include"include/queue.h"
+#include"include/pkt_io.h"
 
 #define UDP_TABLE_NUM 16
 
@@ -110,7 +111,7 @@ void
 tx_udp(uint16_t src_port, uint16_t dest_port, uint8_t *data, uint32_t size, uint32_t dest_ip, struct ip_interface *ifs) {
 	struct rte_mbuf *mbuf = rte_pktmbuf_alloc(mbuf_pool);
 	uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);	
-	struct udp_hdr *udphdr = (struct udp_hdr *)p
+	struct udp_hdr *udphdr = (struct udp_hdr *)p;
 	p += sizeof(struct udp_hdr);
 	uint32_t udp_len = size + sizeof(struct udp_hdr);
 
