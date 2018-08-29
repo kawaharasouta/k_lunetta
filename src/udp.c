@@ -184,6 +184,29 @@ rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 }
 
 size_t 
+udp_send(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port) {
+	struct udp_table_entry *entry;
+	struct ip_interface *ifs;
+	uint16_t src_port;
+	if (soc < 0 || soc >= UDP_TABLE_NUM || !udp.table[soc].used) {
+		return -1;
+	}
+	entry = &udp.table[soc];
+	pthread_mutex_lock(&udp.mutex);
+	ifs = entry->ifs;
+	if (ifs) {
+		//sendto 
+	}
+	if (!entry->port) {
+		//sendto
+	}
+	src_port = entry->port;
+	pthread_mutex_unlock(&udp.mutex);
+	tx_udp(src_port, dest_port, buf, size, peer, ifs);
+	return size;
+}
+
+size_t 
 udp_recvfrom(int soc, uint8_t *buf, size_t size, uint32_t *addr, uint16_t *port) {
 	struct udp_table_entry *entry;
 	if (soc < 0 || soc >= UDP_TABLE_NUM || !udp.table[soc].used) {

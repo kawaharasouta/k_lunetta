@@ -21,6 +21,8 @@ lunetta_udp_close();
 int 
 lunetta_udp_bind(int soc, uint32_t addr, uint16_t port);
 size_t 
+udp_send(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port);
+size_t 
 udp_recvfrom(int soc, uint8_t *buf, size_t size, uint32_t *addr, uint16_t *port);
 
 void 

@@ -79,7 +79,7 @@ main(void) {
 //		printf("recv len: %d\n", len);
 //		hexdump(buf, (int)len);
 		//uint32_t tpa = 0x0300000a;
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 30; i++) {
 			buf[i] = 0xa;
 		}
 
@@ -88,7 +88,8 @@ main(void) {
 		//tx_ether(ether_port, mbuf, 0, ETHERTYPE_IP, &tpa, NULL);
 		//tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);i
 		struct ip_interface *ifs = get_ip_interface_from_addr(tpa_ip);
-		tx_udp(80, 80, buf, 10, tpa_ip, ifs);
+		udp_send(soc, buf, 30, tpa_ip, 80);
+		//tx_udp(80, 80, buf, 30, tpa_ip, ifs);
 	}
 	rte_eal_wait_lcore(1);
 
