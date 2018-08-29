@@ -74,6 +74,7 @@ main(void) {
 		//tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);
 		uint8_t buf[256];
 	while (1) {
+		sleep(1);
 //		memset(buf, 0, 256);
 //		size_t len = udp_recvfrom(soc, buf, 256, NULL, NULL);
 //		printf("recv len: %d\n", len);
@@ -88,7 +89,7 @@ main(void) {
 		//tx_ether(ether_port, mbuf, 0, ETHERTYPE_IP, &tpa, NULL);
 		//tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);i
 		struct ip_interface *ifs = get_ip_interface_from_addr(tpa_ip);
-		udp_send(soc, buf, 30, tpa_ip, 80);
+		udp_sendto(soc, buf, 30, tpa_ip, 80);
 		//tx_udp(80, 80, buf, 30, tpa_ip, ifs);
 	}
 	rte_eal_wait_lcore(1);

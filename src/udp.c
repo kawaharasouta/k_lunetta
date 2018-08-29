@@ -13,6 +13,8 @@
 #include"include/pkt_io.h"
 
 #define UDP_TABLE_NUM 16
+#define UDP_SOURCE_PORT_MIN 49152
+#define UDP_SOURCE_PORT_MAX 65535
 
 struct udp_queue_hdr {
 	uint32_t addr;
@@ -184,22 +186,44 @@ rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 }
 
 size_t 
-udp_send(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port) {
-	struct udp_table_entry *entry;
+udp_sendto(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port) {
+	struct udp_table_entry *entry, *ent;
+	struct udp_table_entry *fin = udp.table + UDP_TABLE_NUM;
 	struct ip_interface *ifs;
-	uint16_t src_port;
+	uint16_t src_port, sport;
 	if (soc < 0 || soc >= UDP_TABLE_NUM || !udp.table[soc].used) {
 		return -1;
 	}
 	entry = &udp.table[soc];
 	pthread_mutex_lock(&udp.mutex);
 	ifs = entry->ifs;
-	if (ifs) {
-		//sendto 
+
+	if (!ifs) {
+		//ifs = get_ip_interface_from_addr(peer);
+		ifs = get_ip_interface_from_peer(peer);
+		if (!ifs) {
+			pthread_mutex_unlock(&udp.mutex);
+			return -1;
+		}
 	}
 	if (!entry->port) {
-		//sendto
+		for (sport = UDP_SOURCE_PORT_MIN; sport <= UDP_SOURCE_PORT_MAX; sport++) {
+			for (ent = udp.table; ent != fin; ent++) {
+				if (ent->port == sport && (!ent->ifs || ent->ifs == ifs)) {
+					break;
+				}
+			}
+			if (ent == fin) {
+				entry->port = sport;
+				break;
+			}
+		}
+		if (!entry->port) {
+			pthread_mutex_unlock(&udp.mutex);
+			return -1;
+		}
 	}
+
 	src_port = entry->port;
 	pthread_mutex_unlock(&udp.mutex);
 	tx_udp(src_port, dest_port, buf, size, peer, ifs);

@@ -177,10 +177,21 @@ ip_route_lookup(uint32_t dest, uint32_t *nexthop, struct ip_interface **ifs) {
 	if (!ret) {
 		return -1;
 	}
-	*nexthop = ret->next;
+	if (nexthop)
+		*nexthop = ret->next;
 	*ifs = get_ip_interface_from_ether_port(ret->port);
 
 	return 0;
+}
+
+struct ip_interface*
+get_ip_interface_from_peer(uint32_t addr) {
+	struct ip_interface *ifs;
+	int ret = ip_route_lookup(addr, NULL, &ifs);
+	if (ret == -1)
+		return NULL;
+
+	return ifs;
 }
 
 static uint16_t 

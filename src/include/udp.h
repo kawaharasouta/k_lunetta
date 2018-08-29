@@ -21,9 +21,12 @@ lunetta_udp_close();
 int 
 lunetta_udp_bind(int soc, uint32_t addr, uint16_t port);
 size_t 
-udp_send(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port);
+udp_sendto(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port);
 size_t 
 udp_recvfrom(int soc, uint8_t *buf, size_t size, uint32_t *addr, uint16_t *port);
+
+struct ip_interface*
+get_ip_interface_from_peer(uint32_t addr);
 
 void 
 tx_udp(uint16_t src_port, uint16_t dest_port, uint8_t *data, uint32_t size, uint32_t dest_ip, struct ip_interface *ifs);
