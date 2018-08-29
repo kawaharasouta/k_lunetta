@@ -121,6 +121,7 @@ tx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint32_t size, uint16_t
 		//before receiving arp reply. resend arp_req. do not consider data loss.
 		if (is_zero_ethernet_addr(&haddr)) {
 			send_req(port, paddr);
+			rte_pktmbuf_free(mbuf);
 			return;
 		}
 	}
