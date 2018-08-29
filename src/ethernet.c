@@ -170,7 +170,6 @@ rx_ether(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t
 	struct ethernet_hdr *packet = (struct ethernet_hdr *)data;
 	uint8_t *pp = data;
 
-	printf("sizeof %u\n", sizeof(struct ethernet_hdr));
 	pp += sizeof(struct ethernet_hdr);
 	size -= sizeof(struct ethernet_hdr);
 

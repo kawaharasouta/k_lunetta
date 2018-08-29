@@ -3,6 +3,7 @@
 #include<string.h>
 #include<stdint.h>
 #include<pthread.h>
+#include<arpa/inet.h>
 
 #include<rte_mbuf.h>
 
@@ -240,31 +241,45 @@ match_directed_broadcast(uint32_t dest) {
 }
 
 void 
-tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32_t src) {
+tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, struct ip_interface *ifs) {
 	uint32_t nexthop = 0;
-	struct ip_interface *ifs;
-	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
+//	struct ip_interface *ifs;
+//	struct ip_interface *fin = interfaces + IP_INTERFACE_NUM;
 
-	if (dest == ip_broadcast) {
-		//printf("limited broadcast\n");
-		//lookup src addr
-		for (ifs = interfaces; ifs != fin; ifs++) {
-			if (src == ifs->addr) {
-				//tx_ip_core(proto, mbuf, size, dest, 0, ifs->port);
-				break;
-			}
-			ifs = NULL;
-		}
+//	if (dest == ip_broadcast) {
+//		//printf("limited broadcast\n");
+//		//lookup src addr
+//		for (ifs = interfaces; ifs != fin; ifs++) {
+//			if (src == ifs->addr) {
+//				//tx_ip_core(proto, mbuf, size, dest, 0, ifs->port);
+//				break;
+//			}
+//			ifs = NULL;
+//		}
+//	}
+//	else if ((ifs = match_directed_broadcast(dest)) == NULL) {
+//		if (ip_route_lookup(dest, &nexthop, &ifs) == -1) {
+//			fprintf(stderr, "no route\n");
+//			exit(1);/*****/
+//		}
+//		if (!nexthop) {//same network. nexthop is dest. (now that is set 0.)
+//			nexthop = dest;
+//		}
+//	}
+
+	if (ifs && dest == ip_broadcast) {
+		nexthop = dest;
 	}
-	else if ((ifs = match_directed_broadcast(dest)) == NULL) {
+	else {
 		if (ip_route_lookup(dest, &nexthop, &ifs) == -1) {
-			fprintf(stderr, "no route\n");
-			exit(1);/*****/
+			fprintf(stderr, "no rtoue\n");
+			return;
 		}
-		if (!nexthop) {//same network. nexthop is dest. (now that is set 0.)
+		if (!nexthop) {
 			nexthop = dest;
 		}
 	}
+
 	if (!ifs) {
 		fprintf(stderr, "ip interface is not found\n");
 		exit(1);

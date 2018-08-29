@@ -73,9 +73,9 @@ main(void) {
 		//tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);
 		uint8_t *buf[256];
 	while (1) {
-		sleep(3);
 		memset(buf, 0, 256);
 		size_t len = udp_recvfrom(soc, buf, 256, NULL, NULL);
+		printf("recv len: %d\n", len);
 		hexdump(buf, (int)len);
 		//uint32_t tpa = 0x0300000a;
 

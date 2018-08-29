@@ -43,7 +43,7 @@ struct ip_init_info {
 void 
 print_ip_hdr(struct ip_hdr *ip_hdr);
 void 
-tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, uint32_t src);
+tx_ip(uint8_t proto, struct rte_mbuf *mbuf, uint32_t size, uint32_t dest, struct ip_interface *ifs);
 void 
 rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size);
 uint32_t 
