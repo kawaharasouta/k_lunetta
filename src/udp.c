@@ -125,7 +125,7 @@ tx_udp(uint16_t src_port, uint16_t dest_port, uint8_t *data, uint32_t size, uint
 	//atodeyarou
 	
 
-	tx_ip(IP_PROTO_TCP, mbuf, udp_len, dest_ip, ifs);
+	tx_ip(IP_PROTO_UDP, mbuf, udp_len, dest_ip, ifs);
 	return;
 }
 
