@@ -185,7 +185,7 @@ ip_route_lookup(uint32_t dest, uint32_t *nexthop, struct ip_interface **ifs) {
 }
 
 struct ip_interface*
-get_ip_interface_from_peer(uint32_t addr) {
+get_ip_interface_from_dest(uint32_t addr) {
 	struct ip_interface *ifs;
 	int ret = ip_route_lookup(addr, NULL, &ifs);
 	if (ret == -1)
@@ -309,7 +309,6 @@ rx_ip(struct ether_port *port, struct rte_mbuf *mbuf, uint8_t *data, uint32_t si
 		return;
 
 	hdr_len = iphdr->hdr_len << 2;
-	printf("hdr_len: %d\n", hdr_len);
 	if (iphdr->version != 4) {
 		fprintf(stderr, "not ipv4\n");
 		return;

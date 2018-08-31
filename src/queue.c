@@ -58,7 +58,7 @@ void queue_push(struct queue_info *queue, void *data, uint32_t size) {
 	//if (!queue->head) {
 	//	queue->head = node;
 	//}
-	queue->num += 1;
+	queue->num++;
 
   return;
 }
@@ -72,7 +72,7 @@ struct queue_node* queue_pop(struct queue_info *queue) {
 		return NULL;
 	}
 	
-	queue->num -= 1;
+	queue->num--;
 	struct queue_node *ret = queue->head; 
 	queue->head = queue->head->next;
 	//if (!queue->head) {

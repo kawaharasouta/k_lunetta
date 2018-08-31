@@ -13,6 +13,8 @@ struct port_config {
 
 int
 lunetta_init();
+int 
+lunetta_close();
 
 uint16_t 
 checksum_s(uint16_t *data, uint16_t size, uint32_t init);

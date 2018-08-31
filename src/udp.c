@@ -118,7 +118,7 @@ tx_udp(uint16_t src_port, uint16_t dest_port, uint8_t *data, uint32_t size, uint
 	uint32_t udp_len = size + sizeof(struct udp_hdr);
 
 	udphdr->src_port = htons(src_port);
-	udphdr->dest_port = htons(dest_port);
+	udphdr->dest_port = dest_port;
 	udphdr->len = htons(udp_len);
 	udphdr->check = 0;
 	memcpy(p, data, size);
@@ -146,10 +146,8 @@ rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 	struct udp_table_entry *entry;
 	struct udp_table_entry *fin = udp.table + UDP_TABLE_NUM;
 	pthread_mutex_lock(&udp.mutex);
-	printf("mutex_lock\n");
 	for (entry = udp.table; entry != fin; entry++) {
 		if (entry->used && (!entry->ifs || entry->ifs == ifs) && entry->port == ntohs(udphdr->dest_port)) {//Implement INADDR_ANY later  ->  done?
-			printf("match\n");
 			queue_data = malloc(sizeof(struct udp_queue_hdr) + (size - sizeof(struct udp_hdr)));
 			if (!queue_data) {
 				pthread_mutex_unlock(&udp.mutex);
@@ -161,11 +159,8 @@ rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 			queue_hdr->len = size - sizeof(struct udp_hdr);
 			memcpy(queue_hdr + 1, udphdr + 1, size - sizeof(struct udp_hdr));
 
-			printf("queue_push\n");
 			queue_push(&entry->queue, queue_data, size - sizeof(struct udp_hdr));
-			printf("cond_signal\n");
 			pthread_cond_signal(&entry->cond);
-			printf("mutex_unlock\n");
 			pthread_mutex_unlock(&udp.mutex);
 			return;
 		}
@@ -186,7 +181,7 @@ rx_udp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 }
 
 size_t 
-udp_sendto(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port) {
+udp_sendto(int soc, uint8_t *buf, size_t size, uint32_t dest, uint16_t dest_port) {
 	struct udp_table_entry *entry, *ent;
 	struct udp_table_entry *fin = udp.table + UDP_TABLE_NUM;
 	struct ip_interface *ifs;
@@ -199,8 +194,7 @@ udp_sendto(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port
 	ifs = entry->ifs;
 
 	if (!ifs) {
-		//ifs = get_ip_interface_from_addr(peer);
-		ifs = get_ip_interface_from_peer(peer);
+		ifs = get_ip_interface_from_dest(dest);
 		if (!ifs) {
 			pthread_mutex_unlock(&udp.mutex);
 			return -1;
@@ -226,7 +220,7 @@ udp_sendto(int soc, uint8_t *buf, size_t size, uint32_t peer, uint16_t dest_port
 
 	src_port = entry->port;
 	pthread_mutex_unlock(&udp.mutex);
-	tx_udp(src_port, dest_port, buf, size, peer, ifs);
+	tx_udp(src_port, dest_port, buf, size, dest, ifs);
 	return size;
 }
 

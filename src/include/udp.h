@@ -3,6 +3,8 @@
 
 #include<rte_mbuf.h>
 
+#define UDP_DATA_MAX_LEN 65536
+
 extern struct ip_interface;
 
 struct udp_hdr {

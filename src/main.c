@@ -19,78 +19,46 @@
 #include"include/ip.h"
 #include"include/udp.h"
 
-//ethernet.c ...
 void 
 hexdump(uint8_t *buf, int size);
 
+struct port_config port = {
+	.port_num = 0
+};
+struct ip_init_info ip_info = {
+	.addr = 0x0a000006,
+	.mask = 0xffffff00
+};
+
 int 
 main(void) {
-	if (dpdk_init() == -1) {
+	/* lunetta_init */
+	if (lunetta_init(&port, &ip_info) == -1) {
 		fprintf(stderr, "dpdk_init error\n");
 		exit(1);
 	}
 
-	struct port_config port;
-	port.port_num = 0;
-	port_init(&port);
-	ethernet_init(&port, 1);
-	arp_init(&port);
-	//ip_init(get_port_pointer(), 1);
-	struct ip_init_info ip_info;
-	ip_info.port = get_port_pointer();
-	ip_info.addr = 0x0a000006;
-	ip_info.mask = 0xffffff00;
-	ip_init(&ip_info, 1, ip_info.port, 0x0a000001);
-	ip_interfaces_dump();
-	route_table_dump();
-
-	printf("udp_init\n");
-	udp_init();
-	udp_cb_dump();
-	printf("\n");
+	/* udp soc */
 	printf("udp_soc\n");
 	int soc = lunetta_udp_soc();
-	udp_cb_dump();
-	printf("\n");
 	printf("udp_bind\n");
-	lunetta_udp_bind(soc, /*ip_info.addr*/0, 80);
-	udp_cb_dump();
-	printf("\n");
+	lunetta_udp_bind(soc, /*ip_info.addr*/0, 7);
 
-
-	int ret;
-	int rx_pop_num;
-
-	struct ether_port *ether_port = get_port_pointer();
-	rte_eal_remote_launch(launch_lcore_rx, (void *)ether_port, 1);
-	sleep(5);
-//	rte_eal_wait_lcore(1);
-//	while (1) {
-//		launch_lcore_rx(ether_port);
-//	}
-		uint32_t tpa_ip = 0x0a000003;
-		//struct rte_mbuf *mbuf;
-		//mbuf = rte_pktmbuf_alloc(mbuf_pool);
-		//tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);
-		uint8_t buf[256];
+	uint32_t tpa_ip;
+	uint16_t tport; 
+	uint8_t buf[UDP_DATA_MAX_LEN];
+	size_t len;
 	while (1) {
-//		memset(buf, 0, 256);
-//		size_t len = udp_recvfrom(soc, buf, 256, NULL, NULL);
-//		printf("recv len: %d\n", len);
-//		hexdump(buf, (int)len);
-		//uint32_t tpa = 0x0300000a;
-		for (int i = 0; i < 30; i++) {
-			buf[i] = 0xa;
-		}
-
-		//printf("***\n");
-		//uint8_t *p = rte_pktmbuf_mtod(mbuf, uint8_t*);
-		//tx_ether(ether_port, mbuf, 0, ETHERTYPE_IP, &tpa, NULL);
-		//tx_ip(6, mbuf, 0, tpa_ip, ip_info.addr);i
-		struct ip_interface *ifs = get_ip_interface_from_addr(tpa_ip);
-		udp_sendto(soc, buf, 30, tpa_ip, 80);
-		//tx_udp(80, 80, buf, 30, tpa_ip, ifs);
+		printf("recv\n");
+		len = udp_recvfrom(soc, buf, sizeof(buf), &tpa_ip, &tport);
+		hexdump(buf, (int)len);
+		printf("send\n");
+		udp_sendto(soc, buf, len, tpa_ip, tport);
 	}
-	rte_eal_wait_lcore(1);
 
+	if (lunetta_close() == -1) {
+		fprintf(stderr, "lunetta_close error\n");
+		exit(1);
+	}
+	return 0;
 }
