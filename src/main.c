@@ -34,7 +34,7 @@ int
 main(void) {
 	/* lunetta_init */
 	if (lunetta_init(&port, &ip_info) == -1) {
-		fprintf(stderr, "dpdk_init error\n");
+		fprintf(stderr, "lunetta_init error\n");
 		exit(1);
 	}
 
