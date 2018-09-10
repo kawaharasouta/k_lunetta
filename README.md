@@ -1,5 +1,5 @@
 # k_lunetta
 
-(re?)implementation of lunetta at klab intern
-
+It is a network stack developed by intern at klab.  
+Development continues in the following repository.  
 https://github.com/kawaharasouta/lunetta
