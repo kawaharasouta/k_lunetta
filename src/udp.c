@@ -29,7 +29,8 @@ struct udp_table_entry {
 	uint16_t port;
 	struct queue_info queue;
 	pthread_cond_t cond;
-};
+}; //udp control borck entry.
+
 
 struct udp_table_info {
 	struct udp_table_entry table[UDP_TABLE_NUM];

@@ -14,8 +14,6 @@
 #include"include/pkt_io.h"
 
 
-
-
 typedef enum enm1 {
   CLOSED,
   SYN_SENT,
