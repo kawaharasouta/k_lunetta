@@ -15,11 +15,24 @@
 
 #define TCP_CB_TABLE_SIZE 32
 
+typedef enum enm1 {
+	CLOSED, //s,c
+	LISTEN, //s
+	SYN_SEND, //c
+	SYN_RCVD, //s
+	ESTABLISHED, //s,c
+	FIN_WAIT1, //c
+	FIN_WAIT2, //c
+	CLOSE, //c
+	TIME_WAIT, //c
+	CLOSE_WAIT, //s
+	LAST_ACK, //s
+} tcp_state;
 
 
 struct tcp_cb_entry {
 	uint8_t used;
-	uint8_t state;
+	tcp_state state;
 	struct iip_interface *ifs;
 	uint16_t port;
 	struct {
@@ -57,16 +70,14 @@ struct {
 
 
 
-static void 
+void 
 rx_tcp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32_t dest, struct ip_interface *ifs) {
-
-}
-
-static void 
-tx_tcp() {
 	struct tcp_hdr *hdr;
 	//uint32_t pseudo;
-	struct tcp_cb_entry *entry;
+	struct tcp_cb_entry *entry, *fcb = NULL, *lcb = NULL;
+	struct tcp_cb_entry *fin = tcp_cb.table + TCP_CB_TABLE_SIZE;
+
+	hdr = data
 
 	//if(dest != )
 	if(size < sizeof(struct tcp_hdr)) {
@@ -77,6 +88,26 @@ tx_tcp() {
 	//
 	//
 	
+	for (entry = tcp_cb.table; entry != fin; entry++) {
+		if (!entry->used) {
+			if (!fcb) {
+				fcb = entry;
+			}
+		}
+		else if ((!cb->ifs || cb->iface == ifs) && cb->port == hdr->dest_port) {
+			if ((cb->peer.addr == src) && (cb->peer.port == hdr->src_port)) {
+				break;
+			}
+			if (cb->state == LISTEN && !lcb) {
+				lcb = cb;
+			}
+		}
+	}
 
+
+}
+
+void 
+tx_tcp() {
 
 }
