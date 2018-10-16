@@ -13,7 +13,14 @@
 #include"include/queue.h"
 
 
-#define TCP_CB_TABLE_SIZE 32
+#define TCP_CB_TABLE_SIZE 32i
+
+#define TCP_FLG_FIN 0x01
+#define TCP_FLG_SYN 0x02
+#define TCP_FLG_RST 0x04
+#define TCP_FLG_PSH 0x08
+#define TCP_FLG_ACK 0x10
+#define TCP_FLG_URG 0x20
 
 typedef enum enm1 {
 	CLOSED, //s,c
@@ -55,7 +62,7 @@ struct tcp_cb_entry {
 	//} recv;
 	//uint32_t irs;
 	//struct ...
-	//uint8_t window[65535];
+	uint8_t window[65535];
 	//struct tcp_cb_entry *parent;
 	//struct ...
 	//pthread_cond_t 
@@ -90,21 +97,38 @@ rx_tcp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 	
 	for (entry = tcp_cb.table; entry != fin; entry++) {
 		if (!entry->used) {
-			if (!fcb) {
+			if (!fcb) {// frecuency cb.
 				fcb = entry;
 			}
 		}
-		else if ((!cb->ifs || cb->iface == ifs) && cb->port == hdr->dest_port) {
-			if ((cb->peer.addr == src) && (cb->peer.port == hdr->src_port)) {
+		else if ((!cb->ifs || cb->ifs == ifs) && cb->port == hdr->dest_port) { //check ifs and port.
+			if ((cb->peer.addr == src) && (cb->peer.port == hdr->src_port)) {//check peer.
 				break;
 			}
-			if (cb->state == LISTEN && !lcb) {
+			if (cb->state == LISTEN && !lcb) {//listen cb.
 				lcb = cb;
 			}
 		}
 	}
+	if (cb == fin) {//not hit active cb.
+		if (!lcb || !fcb || !(hdr->flg & TCP_FLAG_SYN)) {
+			//send RST
+			return;
+		}
+		cb = fcb;
+		cb->used = 1;
+		cb->state = lcb->state;
+		cb->ifs = ifs;
+		cb->port = lcb->port;
+		cb->peer.addr = src;
+		cb->peer.port = port;
+		cb->rcv.wnd = sizeof(cb->window); // ????????
+		cb->parent = lcb;
 
+	}
+	//event
 
+	return;
 }
 
 void 
