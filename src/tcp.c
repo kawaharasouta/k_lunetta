@@ -132,6 +132,22 @@ rx_tcp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 }
 
 void 
-tx_tcp() {
+tx_tcp(struct tcp_cb_entry *cb, uint32_t seq, uint32_t ack, uint8_t flag, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
+	uint8_t segment[1500];
+	struct tcp_hdr *tcphdr;
+	uint32_t self, peer;
+	//uint32_t pseudo = 0;
+	
+	memset(sengment, 0, sizeof(segment));
+	tcphdr = (struct tcp_hdr *)segment;
+	tcphdr->src_port = cb->port;
+	tcphdr->dest_port = cb->peer.port;
+	tcphdr->seqence = htonl(seq);
+	tcphdr->acknowledge = htonl(ack);
+	tcphdr->offset = (sizeof(struct tcp_hdr) >> 2) << 4;
+	tcphdr->flag = flag;
+	tcphdr->window_size = htons(cb->recv.wnd); ////////
+	tcphdr->checksum = 0;
+	tcphdr->urg = 0;
 
 }
