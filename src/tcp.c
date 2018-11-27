@@ -75,7 +75,24 @@ struct {
 } tcp_cb;
 
 
+static void
+tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size){
+	size_t hlen, plen;
+	uint32_t seq, ack;
 
+	hlen = ((hdr->off >> 4) << 2;
+	plen = size - hlen;
+	switch(cb->state) {
+	case CLOSED:
+		//ope falgs etc.. and send RST.
+		tx_tcp(cb, seq, ack, TCP_FLG_RST, NULL, 0);
+		//tx_tcp(struct tcp_cb_entry *cb, uint32_t seq, uint32_t ack, uint8_t flag, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
+		break;
+	default:
+		break;
+
+	}
+}
 
 void 
 rx_tcp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32_t dest, struct ip_interface *ifs) {
@@ -150,4 +167,12 @@ tx_tcp(struct tcp_cb_entry *cb, uint32_t seq, uint32_t ack, uint8_t flag, struct
 	tcphdr->checksum = 0;
 	tcphdr->urg = 0;
 
+
+	//pseudo and checksum
+	//
+	//
+	
+	tcphdr->checksum = 0
+
+	return 0;
 }
