@@ -22,10 +22,12 @@
 #define TCP_FLG_ACK 0x10
 #define TCP_FLG_URG 0x20
 
+#define TCP_FLG_ISSET(x, y) ((x & 0x3f) & (y)) 
+
 typedef enum enm1 {
 	CLOSED, //s,c
 	LISTEN, //s
-	SYN_SEND, //c
+	SYN_SENT, //c
 	SYN_RCVD, //s
 	ESTABLISHED, //s,c
 	FIN_WAIT1, //c
@@ -88,6 +90,18 @@ tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size){
 		tx_tcp(cb, seq, ack, TCP_FLG_RST, NULL, 0);
 		//tx_tcp(struct tcp_cb_entry *cb, uint32_t seq, uint32_t ack, uint8_t flag, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
 		break;
+	case LISTEN:
+		if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_RST)) {
+			break;
+		}
+		else if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_ACK)) {
+			
+		}
+		else if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_SYN)) {
+
+		}
+		break;
+	case SYN_SENT:
 	default:
 		break;
 
