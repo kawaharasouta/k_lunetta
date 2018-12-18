@@ -4,8 +4,8 @@
 struct tcp_hdr {
 	uint16_t src_port;
 	uint16_t dest_port;
-	uint32_t seqence;
-	uint32_t acknowledge;
+	uint32_t seq;
+	uint32_t ack;
 	uint8_t offset;
 	uint8_t flag;
 	uint16_t window_size;

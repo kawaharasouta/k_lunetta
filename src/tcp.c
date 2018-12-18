@@ -84,20 +84,43 @@ tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size){
 
 	hlen = ((hdr->off >> 4) << 2;
 	plen = size - hlen;
-	switch(cb->state) {
+	switch (cb->state) {
 	case CLOSED:
 		//ope falgs etc.. and send RST.
+		//but need to operate seq and ack.
+		if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_RST)) {
+			break;
+		}
+		if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_ACK)) {//?
+			seq = ntohl(tcphdr->ack);
+			ack = 0;
+		}
+		else {
+			seq = 0;
+			ack = ntohl(tcphdr->seq);
+			if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_SYN)) {
+				ack++;
+			}
+			if (plen) {
+				ack += plen;
+			}
+			if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_FIN)) {
+				ack++;
+			}
+		}
 		tx_tcp(cb, seq, ack, TCP_FLG_RST, NULL, 0);
-		//tx_tcp(struct tcp_cb_entry *cb, uint32_t seq, uint32_t ack, uint8_t flag, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
 		break;
 	case LISTEN:
 		if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_RST)) {
 			break;
 		}
 		else if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_ACK)) {
-			
+			seq = ntohl(tcphdr->ack);
+			ack = 0;
+			tx_tcp(cb, seq, ack, TCP_FLG_RST, NULL, 0);
+			break;
 		}
-		else if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_SYN)) {
+		else if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_SYN)) {//3way-handshake first.
 
 		}
 		break;
