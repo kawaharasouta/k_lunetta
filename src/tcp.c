@@ -48,22 +48,22 @@ struct tcp_cb_entry {
 		uint32_t addr;
 		uint16_t port;
 	} peer;
-	//struct {
-	//	uint32_t nxt;
-	//	uint32_t una;
-	//	uint32_t up;
-	//	uint32_t wl1;
-	//	uint32_t wl2;
-	//	uint32_t wnd;
-	//} send;
-	//uint32_t iss;
-	//struct {
-	//	uint32_t nxt;
-	//	uint16_t up;
-	//	uint16_t wnd;
-	//} recv;
-	//uint32_t irs;
-	//struct ...
+	struct {
+		uint32_t next;
+		uint32_t una;
+		uint32_t up;
+		uint32_t wl1;
+		uint32_t wl2;
+		uint32_t wnd;
+	} send;
+	uint32_t iss;
+	struct {
+		uint32_t next;
+		uint16_t up;
+		uint16_t wnd;
+	} recv;
+	uint32_t irs;
+//	struct ...
 	uint8_t window[65535];
 	//struct tcp_cb_entry *parent;
 	//struct ...
@@ -121,7 +121,15 @@ tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size){
 			break;
 		}
 		else if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_SYN)) {//3way-handshake first.
-
+			cb->recv.next = ntohl(tcphdr->seq) + 1;
+			cb->irs = ntoh(tcphdr->seq);
+			cb->iss = (uint32_t)random();
+			seq = cb->iss;
+			ack = cb->recv.next;
+			tx_tcp(cb, seq, ack, TCP_FLG_SYN | TCP_FLG_SYN, NULL, 0);
+			cb->send.next = cb->iss + 1;
+			cb->send.una = cb->iss;
+			cb->state = SYN_RECV;
 		}
 		break;
 	case SYN_SENT:
@@ -186,7 +194,7 @@ rx_tcp(struct rte_mbuf *mbuf, uint8_t *data, uint32_t size, uint32_t src, uint32
 }
 
 void 
-tx_tcp(struct tcp_cb_entry *cb, uint32_t seq, uint32_t ack, uint8_t flag, struct rte_mbuf *mbuf, uint8_t *data, uint32_t size) {
+tx_tcp(struct tcp_cb_entry *cb, uint32_t seq, uint32_t ack, uint8_t flag, uint8_t *data, uint32_t size) {
 	uint8_t segment[1500];
 	struct tcp_hdr *tcphdr;
 	uint32_t self, peer;
