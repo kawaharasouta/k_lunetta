@@ -133,9 +133,54 @@ tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size){
 		}
 		break;
 	case SYN_SENT:
+		if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_ACK)) {
+			if (ntohl(tcphdr->ack) <= cb->iss || ntohl(tcphdr->ack) > cb->send.next) {
+				if (!TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_RST)) {
+					seq = ntohl(tcphdr->ack);
+					ack = 0;
+					tx_tcp();
+				}
+				break;
+			}
+		}
+		if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_RST)) {
+			if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_ACK)) {
+				// TCP CLOSE ??
+			}
+			break;
+		}
+		if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_SYN)) {
+			cb->recv.next = ntohl(tcphdr->ack);
+			cb->irs = ntohl(tcphdr->seq) + 1;
+			// delete TX queue
+			if (cb->send.una > cb->iss) {
+				cb->state = ESTABLISHED;
+				seq = cb->send.next;
+				ack = cb->recv.next;
+				tcp_output();
+				//pthread_signal
+			}
+			break;
+			seq = cb->iss;
+			ack = cb->recv.next;
+			tcp_output();
+		}
+		break;
 	default:
 		break;
 
+	}
+	if (ntohl(tcphdr->seq) != cb->recv.next) {
+		//err
+		break;
+	}
+	if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_RÍT | TCP_FLG_SYN)) {
+		//err
+		break;
+	}
+	if (!TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_ACK)) {
+		//err
+		break;
 	}
 }
 
