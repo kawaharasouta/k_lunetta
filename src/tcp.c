@@ -182,6 +182,64 @@ tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size){
 		//err
 		break;
 	}
+	switch (cb->state) {
+	case SYN_RCVD:
+		if (cb->send.una <= ntohl(tcphdr->ack) && ntohl(tcphdr->ack) <= send.next) {
+			cb->state = ESTABLISHED;
+			//?????????????//
+			//queue_push()
+			//pthread
+			break;
+		}
+		break;
+	case ESTABLISHED:
+	case FIN_WAIT1:
+	case FIN_WAIT2:
+	case CLOSE_WAIT:
+	case CLOSE:
+		if (cb->snduna < ntohl(tcphdr->ack) && ntohl(tcphdr->ack) <= cb->send.next) {
+			cb->send.una = ntohl(tcphdr->ack);
+		}
+		else if (ntohl(tcphdr->ack) > cb->send.next) {
+			//tcp_output(); ACK
+			break;
+		}
+		// send window update
+		if (cb->state == FIN_WAIT1) {
+			if (ntohl(tcphdr->ack) == cb->send.next) {
+				cb->state = FIN_WAIT2;
+			}
+		}
+		else if (cb->state == CLOSE) {
+			if (ntohl(tcphdr->ack) == cb->send.next) {
+				cb->state = TIME_WAIT;
+				//pthread_cond
+			}
+			break;
+		}
+		break;
+	case LAST_ACK:
+		cb->state = CLOSED;
+		//pthread_cond
+		return;
+	}
+	if (plen) {
+		switch (cb->state) {
+		case ESTABLISHED:
+		case FIN_WAIT1:
+		case FIN_WAIT2:
+			memcpy(cb->window + (sizeof(cb->window) - cb->rcv.wnd), (uint8_t *)tcphdr + hlen, plen);
+			cb->recv.next = ntohl(tcphdr->seq) + plen;
+			cb->recv.wnd -= plen;
+			seq = cb->send.next;
+			ack = cb->recv.next;
+			tcp_output();
+			//pthread_cond
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 void 
