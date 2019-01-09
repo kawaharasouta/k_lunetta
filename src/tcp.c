@@ -78,7 +78,7 @@ struct {
 
 
 static void
-tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size){
+tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size) {
 	size_t hlen, plen;
 	uint32_t seq, ack;
 
@@ -240,6 +240,28 @@ tcp_rx_event(struct tcp_cb_entry *cb, struct tcp_hdr *tcphdr, size_t size){
 			break;
 		}
 	}
+	if (TCP_FLG_ISSET(tcphdr->flag, TCP_FLG_FIN)) {
+		cb->recv.next++;
+		tcp_output();
+		switch (cb->state) {
+		case SYN_RCVD:
+		case ESTABLISHED:
+			cb->state = CLOSE_WAIT;
+			//pthread_cond
+			break;
+		case FIN_WAIT1:
+			cb->state = FIN_WAIT2;
+			break;
+		case FIN_WAIT2:
+			cb->state = TIME_WAIT;
+			//pthread_cond
+			break;
+		default:
+			break;
+		}
+		return;
+	}
+	return;
 }
 
 void 
